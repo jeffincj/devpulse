@@ -66,6 +66,12 @@
 <!-- ===================== MANAGER VIEW ===================== -->
 <div id="managerControls">
 
+  <div class="card" style="border: 2px solid #e74c3c;">
+    <h3>🚩 Smart Alerts — what needs your attention</h3>
+    <button onclick="loadFlags()">Check for issues</button>
+    <div id="flagsResult"></div>
+  </div>
+
   <div class="card">
     <h3>📥 Pending join requests</h3>
     <button onclick="loadPendingRequests()">Refresh pending requests</button>
@@ -231,8 +237,28 @@ async function checkRoleAndInit() {
     } else {
       await loadTeams();
       await loadPendingRequests();
+      await loadFlags();
     }
   } catch (e) { console.error(e); }
+}
+
+/* ---------- MANAGER: SMART ALERTS ---------- */
+async function loadFlags() {
+  const teamId = document.getElementById('teamSelect').value;
+  if (!teamId) return showResult('flagsResult', 'Select a team first.', true);
+  try {
+    const data = await apiGet(`/api/metrics/flags/?team_id=${teamId}`);
+    if (!data.flags.length) {
+      showResult('flagsResult', "✅ No issues found — everything looks healthy.");
+      return;
+    }
+    let text = `${data.flag_count} issue(s) found:\n\n`;
+    data.flags.forEach(f => {
+      const icon = f.severity === 'high' ? '🔴' : '🟡';
+      text += `${icon} ${f.message}\n\n`;
+    });
+    showResult('flagsResult', text, true);
+  } catch (e) { showResult('flagsResult', e.message, true); }
 }
 
 /* ---------- DEVELOPER: JOIN A TEAM ---------- */
@@ -363,7 +389,10 @@ async function loadRepos(teamId, selectId) {
 
 async function onTeamChange() {
   const teamId = document.getElementById('teamSelect').value;
-  if (teamId) await loadRepos(teamId);
+  if (teamId) {
+    await loadRepos(teamId);
+    await loadFlags();
+  }
 }
 
 async function createTeam() {
@@ -497,7 +526,7 @@ async function showRepoDetails() {
 
 async function showFullReport() {
   showResult('fullReportResult', 'Building full report...');
-  await Promise.all([codeChurn(), contributorActivity(), prTurnaround(), pendingReview(), showRepoDetails()]);
+  await Promise.all([codeChurn(), contributorActivity(), prTurnaround(), pendingReview(), showRepoDetails(), loadFlags()]);
   showResult('fullReportResult', '✅ Full report ready — scroll down, every section below is now updated.');
 }
 

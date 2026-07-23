@@ -112,3 +112,15 @@ class MyStatsView(APIView):
     def get(self, request):
         days = int(request.query_params.get("days", 3650))
         return Response(services.my_stats(request.user, days=days))
+
+
+class TeamFlagsView(APIView):
+    """GET /api/metrics/flags/?team_id=1 -> auto-generated warnings for a manager."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        team_id = request.query_params.get("team_id")
+        if not team_id:
+            raise ValidationError("team_id is a required query param.")
+        team = _get_team_or_404(team_id)
+        return Response(services.team_flags(team))

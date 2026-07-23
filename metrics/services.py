@@ -203,3 +203,80 @@ def my_stats(user, days=3650):
         "team_average_commits": team_avg_commits,
         "per_repository": per_repo,
     }
+
+
+def team_flags(team, days=30):
+    """
+    Auto-generated warnings for a manager — the whole point of this function
+    is to do the "what needs my attention" thinking, not just show raw numbers.
+    """
+    since = timezone.now() - timedelta(days=days)
+    flags = []
+
+    repos = team.repositories.all()
+
+    # Flag 1: PRs open for more than 3 days with zero review
+    for repo in repos:
+        stale_prs = PullRequest.objects.filter(
+            repository=repo, state="open", first_review_at__isnull=True,
+            created_at__lte=timezone.now() - timedelta(days=3)
+        )
+        for pr in stale_prs:
+            age_days = (timezone.now() - pr.created_at).days
+            flags.append({
+                "severity": "high" if age_days >= 7 else "medium",
+                "type": "stale_pr",
+                "message": f"PR #{pr.number} \"{pr.title}\" in {repo.full_name} has had no review for {age_days} days.",
+            })
+
+    # Flag 2: contributors who were active before, but have gone quiet recently
+    two_weeks_ago = timezone.now() - timedelta(days=14)
+    four_weeks_ago = timezone.now() - timedelta(days=28)
+    for repo in repos:
+        previously_active = set(
+            Commit.objects.filter(repository=repo, authored_at__gte=four_weeks_ago, authored_at__lt=two_weeks_ago)
+            .values_list("author_username", flat=True)
+        )
+        recently_active = set(
+            Commit.objects.filter(repository=repo, authored_at__gte=two_weeks_ago)
+            .values_list("author_username", flat=True)
+        )
+        gone_quiet = previously_active - recently_active
+        for author in gone_quiet:
+            flags.append({
+                "severity": "medium",
+                "type": "inactive_contributor",
+                "message": f"{author} was active on {repo.full_name} in the prior 2 weeks, but has had no commits in the last 2 weeks.",
+            })
+
+    # Flag 3: review turnaround creeping up
+    for repo in repos:
+        recent = average_pr_turnaround(repo, days=14)
+        older = average_pr_turnaround(repo, days=30)
+        if recent["average_turnaround_hours"] and older["average_turnaround_hours"]:
+            if recent["average_turnaround_hours"] > older["average_turnaround_hours"] * 1.3:
+                flags.append({
+                    "severity": "medium",
+                    "type": "slow_reviews",
+                    "message": f"Review turnaround on {repo.full_name} has slowed to {recent['average_turnaround_hours']}h (was {older['average_turnaround_hours']}h) — reviews are taking longer lately.",
+                })
+
+    # Flag 4: nobody has merged anything in over a week
+    for repo in repos:
+        last_merge = PullRequest.objects.filter(repository=repo, state="merged").order_by("-merged_at").first()
+        if last_merge and last_merge.merged_at:
+            days_since = (timezone.now() - last_merge.merged_at).days
+            if days_since >= 7:
+                flags.append({
+                    "severity": "high" if days_since >= 14 else "medium",
+                    "type": "no_recent_merges",
+                    "message": f"No pull requests have been merged into {repo.full_name} in {days_since} days.",
+                })
+
+    flags.sort(key=lambda f: 0 if f["severity"] == "high" else 1)
+
+    return {
+        "team": team.name,
+        "flag_count": len(flags),
+        "flags": flags,
+    }
