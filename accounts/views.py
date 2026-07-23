@@ -45,12 +45,19 @@ class MeView(generics.RetrieveUpdateAPIView):
                 from github_integration.services import GitHubClient, GitHubAPIError
                 try:
                     GitHubClient()._get(f"/users/{new_username}")
-                except GitHubAPIError:
-                    raise ValidationError(
-                        {"profile": {"github_username": [
-                            "This GitHub username doesn't exist. Double-check the spelling."
-                        ]}}
-                    )
+                except GitHubAPIError as e:
+                    if "NOT_FOUND" in str(e):
+                        raise ValidationError(
+                            {"profile": {"github_username": [
+                                "This GitHub username doesn't exist. Double-check the spelling."
+                            ]}}
+                        )
+                    else:
+                        raise ValidationError(
+                            {"profile": {"github_username": [
+                                f"Could not verify this username right now — GitHub may be rate-limiting requests. Try again in a minute. ({e})"
+                            ]}}
+                        )
 
             request.user.profile.github_username = new_username
 

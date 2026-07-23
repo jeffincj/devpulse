@@ -30,9 +30,9 @@ class GitHubClient:
     def _get(self, path, params=None):
         response = self.session.get(f"{self.base_url}{path}", params=params, timeout=15)
         if response.status_code == 404:
-            raise GitHubAPIError(f"Not found: {path}")
+            raise GitHubAPIError(f"NOT_FOUND: {path}")
         if response.status_code == 403:
-            raise GitHubAPIError("GitHub API rate limit exceeded or access forbidden.")
+            raise GitHubAPIError("RATE_LIMITED: GitHub API rate limit exceeded or access forbidden.")
         if not response.ok:
             raise GitHubAPIError(f"GitHub API error {response.status_code}: {response.text}")
         return response.json()
@@ -52,6 +52,7 @@ class GitHubClient:
                 break
             page += 1
         return results
+
     def get_repository(self, full_name: str):
         """Repo-level metadata: owner, description, stars, created date."""
         return self._get(f"/repos/{full_name}")
@@ -73,9 +74,6 @@ class GitHubClient:
             params["since"] = since.isoformat()
         return self._get_paginated(f"/repos/{full_name}/commits", params=params)
 
-def get_repository(self, full_name: str):
-        """Repo-level metadata: owner, description, stars, created date."""
-        return self._get(f"/repos/{full_name}")
 
 def _parse_dt(value):
     if not value:
@@ -87,12 +85,8 @@ def sync_repository(repository, max_prs: int = 20):
     """
     Pulls live PR + commit data from GitHub for a Repository and upserts it
     into our DB. Returns a small summary dict.
-
-    This is intentionally synchronous/simple (management command or on-demand
-    API call). For heavier repos, swap this for a Celery task without
-    changing the calling code.
     """
-    from .models import PullRequest, Commit  # local import avoids circulars
+    from .models import PullRequest, Commit
 
     client = GitHubClient()
     created_prs, updated_prs, created_commits = 0, 0, 0
@@ -109,7 +103,7 @@ def sync_repository(repository, max_prs: int = 20):
             if reviews:
                 first_review_at = min(_parse_dt(r["submitted_at"]) for r in reviews if r.get("submitted_at"))
         except GitHubAPIError:
-            pass  # reviews endpoint failing shouldn't fail the whole sync
+            pass
 
         obj, created = PullRequest.objects.update_or_create(
             repository=repository,
