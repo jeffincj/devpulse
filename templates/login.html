@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DevPulse — Sign in</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f5f6fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+  .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); width: 320px; }
+  h1 { text-align: center; color: #2c3e50; font-size: 22px; }
+  .tabs { display: flex; margin-bottom: 20px; }
+  .tab { flex: 1; text-align: center; padding: 8px; cursor: pointer; border-bottom: 2px solid #ddd; color: #888; }
+  .tab.active { border-bottom: 2px solid #2980b9; color: #2980b9; font-weight: bold; }
+  input, select { width: 100%; padding: 10px; margin-top: 6px; margin-bottom: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+  label { font-size: 13px; color: #555; }
+  button { width: 100%; padding: 10px; border: none; border-radius: 6px; background: #2980b9; color: white; font-size: 15px; cursor: pointer; }
+  button:hover { background: #1c5980; }
+  .error { color: #e74c3c; font-size: 13px; margin-top: -6px; margin-bottom: 10px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>📊 DevPulse</h1>
+  <div class="tabs">
+    <div class="tab active" id="loginTab" onclick="showTab('login')">Log in</div>
+    <div class="tab" id="registerTab" onclick="showTab('register')">Register</div>
+  </div>
+
+  <div id="loginForm">
+    <label>Username</label>
+    <input id="loginUsername">
+    <label>Password</label>
+    <input id="loginPassword" type="password">
+    <div class="error" id="loginError"></div>
+    <button onclick="login()">Log in</button>
+  </div>
+
+  <div id="registerForm" class="hidden">
+    <label>Username</label>
+    <input id="regUsername">
+    <label>Email</label>
+    <input id="regEmail">
+    <label>Password</label>
+    <input id="regPassword" type="password">
+    <label>Role</label>
+    <select id="regRole">
+      <option value="manager">Manager</option>
+      <option value="developer">Developer</option>
+    </select>
+    <div class="error" id="registerError"></div>
+    <button onclick="register()">Create account</button>
+  </div>
+</div>
+
+<script>
+function showTab(which) {
+  document.getElementById('loginTab').classList.toggle('active', which === 'login');
+  document.getElementById('registerTab').classList.toggle('active', which === 'register');
+  document.getElementById('loginForm').classList.toggle('hidden', which !== 'login');
+  document.getElementById('registerForm').classList.toggle('hidden', which !== 'register');
+}
+
+async function login() {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  try {
+    const res = await fetch('/api/auth/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = 'Login failed — check your username and password.'; return; }
+    localStorage.setItem('devpulse_access', data.access);
+    localStorage.setItem('devpulse_refresh', data.refresh);
+    window.location.href = '/dashboard/';
+  } catch (e) { errEl.textContent = 'Something went wrong: ' + e; }
+}
+
+async function register() {
+  const username = document.getElementById('regUsername').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+  const role = document.getElementById('regRole').value;
+  const errEl = document.getElementById('registerError');
+  errEl.textContent = '';
+  try {
+    const res = await fetch('/api/auth/register/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, role, github_username: '' })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = JSON.stringify(data); return; }
+    // auto-login right after registering
+    document.getElementById('loginUsername').value = username;
+    document.getElementById('loginPassword').value = password;
+    showTab('login');
+    login();
+  } catch (e) { errEl.textContent = 'Something went wrong: ' + e; }
+}
+</script>
+
+</body>
+</html>

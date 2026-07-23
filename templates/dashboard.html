@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DevPulse Dashboard</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 850px; margin: 30px auto; background: #f5f6fa; color: #222; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; }
+  h1 { color: #2c3e50; }
+  .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+  input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
+  button { margin-top: 12px; padding: 10px 16px; border: none; border-radius: 6px; background: #2980b9; color: white; font-size: 14px; cursor: pointer; margin-right: 8px; }
+  button:hover { background: #1c5980; }
+  button.secondary { background: #7f8c8d; }
+  button.secondary:hover { background: #626c6d; }
+  .result { margin-top: 15px; padding: 15px; background: #eef7ee; border-left: 4px solid #27ae60; border-radius: 4px; white-space: pre-wrap; }
+  .error { background: #fdecea; border-left-color: #e74c3c; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .muted { color: #888; font-size: 13px; }
+  .highlight { border: 2px solid #2980b9; }
+  .warning { background:#fff8e1; border-left:4px solid #f9a825; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📊 DevPulse Dashboard</h1>
+  <button class="secondary" onclick="logout()">Log out</button>
+</div>
+
+<div class="card warning">
+  <strong>⚠️ Important: this tool measures whole repositories, not folders.</strong>
+  <p style="margin:8px 0 0 0; font-size:14px;">
+    Add repositories where the <b>entire repo</b> is one single project — not a repo that
+    contains multiple unrelated projects in separate folders. If a repo has several projects
+    mixed together, all activity will be counted as one combined total, which won't give a
+    fair or accurate comparison between people or projects.
+  </p>
+</div>
+
+<!-- ===================== DEVELOPER VIEW ===================== -->
+<div class="card" id="myStatsCard" style="display:none;">
+  <h3>📈 My Personal Stats</h3>
+  <button onclick="loadMyStats()">Refresh My Stats</button>
+  <div id="myStatsResult"></div>
+  <label style="margin-top:16px;">Your GitHub username</label>
+  <div class="row">
+    <div><input id="githubUsernameInput" placeholder="e.g. jeffincj"></div>
+  </div>
+  <button onclick="saveGithubUsername()">Save GitHub username</button>
+</div>
+
+<!-- ===================== MANAGER VIEW ===================== -->
+<div id="managerControls">
+
+  <div class="card">
+    <h3>Your team</h3>
+    <div class="row">
+      <div>
+        <label>Select team</label>
+        <select id="teamSelect" onchange="onTeamChange()"></select>
+      </div>
+    </div>
+    <button class="secondary" onclick="deleteTeam()">🗑 Delete selected team</button>
+    <p class="muted">No team yet? Create one below.</p>
+    <div class="row">
+      <div><label>New team name</label><input id="newTeamName" placeholder="e.g. Payments Squad"></div>
+    </div>
+    <button onclick="createTeam()">+ Create team</button>
+  </div>
+
+  <div class="card">
+    <h3>Team members</h3>
+    <button onclick="loadMembers()">Refresh member list</button>
+    <div id="membersResult"></div>
+    <div class="row" style="margin-top:16px;">
+      <div><label>Username to add</label><input id="memberUsername" placeholder="e.g. jeffin_dev"></div>
+      <div><label>Role</label>
+        <select id="memberRole">
+          <option value="developer">Developer</option>
+          <option value="manager">Manager</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="addMember()">+ Add member</button>
+    <button class="secondary" onclick="removeMember()">🗑 Remove member (by username above)</button>
+  </div>
+
+  <div class="card">
+    <h3>Repositories in this team</h3>
+    <div class="row">
+      <div>
+        <label>Select repository</label>
+        <select id="repoSelect"></select>
+      </div>
+    </div>
+    <button class="secondary" onclick="deleteRepo()">🗑 Remove selected repository</button>
+    <p class="muted">Add any public GitHub repo, e.g. <b>psf/requests</b> or <b>yourusername/your-repo</b></p>
+    <div class="row">
+      <div><label>Add repository (owner/repo)</label><input id="newRepoName" placeholder="e.g. octocat/Hello-World"></div>
+    </div>
+    <button onclick="addRepo()">+ Add & sync repository</button>
+    <button class="secondary" onclick="syncSelectedRepo()">🔄 Re-sync selected repository</button>
+    <div id="syncResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>Repository details</h3>
+    <button onclick="showRepoDetails()">Show Repository Info</button>
+    <div id="repoDetailsResult"></div>
+  </div>
+
+  <div class="card highlight">
+    <h3>⚡ One-click full report</h3>
+    <button onclick="showFullReport()">Show Everything</button>
+    <div id="fullReportResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>Weekly Commit Timeline (spot consistent work vs. last-minute rush)</h3>
+    <button onclick="commitTimeline()">Show Timeline</button>
+    <div id="timelineResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>Code Churn (lines added/removed)</h3>
+    <button onclick="codeChurn()">Show Code Churn</button>
+    <div id="churnResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>Contributor Activity (who's doing the most work)</h3>
+    <button onclick="contributorActivity()">Show Contributors</button>
+    <div id="contribResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>Compare two contributors</h3>
+    <div class="row">
+      <div><label>Person A (GitHub username)</label><input id="compareA" placeholder="e.g. nateprewitt"></div>
+      <div><label>Person B (GitHub username)</label><input id="compareB" placeholder="e.g. sigmavirus24"></div>
+    </div>
+    <button onclick="compareContributors()">Compare</button>
+    <div id="compareResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>PR Review Turnaround (how fast reviews happen)</h3>
+    <button onclick="prTurnaround()">Show Turnaround</button>
+    <div id="turnaroundResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>Pending Review (open PRs nobody has reviewed)</h3>
+    <button onclick="pendingReview()">Show Pending PRs</button>
+    <div id="pendingResult"></div>
+  </div>
+
+</div>
+
+<script>
+const token = localStorage.getItem('devpulse_access');
+if (!token) window.location.href = '/login/';
+
+function headers(extra) {
+  return Object.assign({ "Authorization": "Bearer " + token }, extra || {});
+}
+
+function logout() {
+  localStorage.removeItem('devpulse_access');
+  localStorage.removeItem('devpulse_refresh');
+  window.location.href = '/login/';
+}
+
+function showResult(elementId, text, isError) {
+  document.getElementById(elementId).innerHTML =
+    "<div class='result" + (isError ? " error" : "") + "'>" + text + "</div>";
+}
+
+async function apiGet(url) {
+  const res = await fetch(url, { headers: headers() });
+  const data = await res.json();
+  if (!res.ok) throw new Error(JSON.stringify(data));
+  return data;
+}
+async function apiPost(url, body) {
+  const res = await fetch(url, { method: "POST", headers: headers({ "Content-Type": "application/json" }), body: JSON.stringify(body || {}) });
+  const data = await res.json();
+  if (!res.ok) throw new Error(JSON.stringify(data));
+  return data;
+}
+async function apiDelete(url) {
+  const res = await fetch(url, { method: "DELETE", headers: headers() });
+  if (res.status !== 204) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(JSON.stringify(data));
+  }
+}
+
+/* ---------- ROLE CHECK ---------- */
+async function checkRoleAndInit() {
+  try {
+    const me = await apiGet('/api/auth/me/');
+    const role = me.profile.role;
+    if (role === 'developer') {
+      document.getElementById('managerControls').style.display = 'none';
+      document.getElementById('myStatsCard').style.display = 'block';
+      document.getElementById('githubUsernameInput').value = me.profile.github_username || '';
+      await loadMyStats();
+    } else {
+      await loadTeams();
+    }
+  } catch (e) { console.error(e); }
+}
+
+/* ---------- DEVELOPER: MY STATS (per-repository breakdown) ---------- */
+async function loadMyStats() {
+  try {
+    const data = await apiGet('/api/metrics/my-stats/?days=3650');
+    if (!data.has_github_username) {
+      showResult('myStatsResult', data.message, true);
+      return;
+    }
+    let text = `GitHub: ${data.github_username}\n\n`;
+    if (!data.per_repository.length) {
+      text += "No activity found yet in any of your team's repositories.";
+    } else {
+      text += "Per repository:\n";
+      data.per_repository.forEach(r => {
+        text += `  ${r.repository} — ${r.commits} commits, ${r.prs_opened} PRs opened (${r.prs_merged} merged)\n`;
+      });
+      text += `\nTotal commits: ${data.total_commits}\nTeam average commits: ${data.team_average_commits}`;
+    }
+    showResult('myStatsResult', text);
+  } catch (e) { showResult('myStatsResult', e.message, true); }
+}
+
+async function saveGithubUsername() {
+  const username = document.getElementById('githubUsernameInput').value.trim();
+  try {
+    const res = await fetch('/api/auth/me/', {
+      method: 'PATCH',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ profile: { github_username: username } })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert('Could not save: ' + JSON.stringify(data));
+      return;
+    }
+    await loadMyStats();
+  } catch (e) { alert('Could not save: ' + e); }
+}
+/* ---------- MANAGER: TEAMS ---------- */
+async function loadTeams(selectId) {
+  const data = await apiGet('/api/teams/');
+  const select = document.getElementById('teamSelect');
+  select.innerHTML = '';
+  data.results.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id; opt.textContent = t.name;
+    select.appendChild(opt);
+  });
+  if (selectId) select.value = selectId;
+  if (select.value) await loadRepos(select.value);
+}
+
+async function loadRepos(teamId, selectId) {
+  const data = await apiGet(`/api/repositories/?team=${teamId}`);
+  const select = document.getElementById('repoSelect');
+  select.innerHTML = '';
+  data.results.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.id; opt.textContent = r.full_name;
+    select.appendChild(opt);
+  });
+  if (selectId) select.value = selectId;
+}
+
+async function onTeamChange() {
+  const teamId = document.getElementById('teamSelect').value;
+  if (teamId) await loadRepos(teamId);
+}
+
+async function createTeam() {
+  const name = document.getElementById('newTeamName').value.trim();
+  if (!name) return alert('Type a team name first.');
+  try {
+    const team = await apiPost('/api/teams/', { name });
+    document.getElementById('newTeamName').value = '';
+    await loadTeams(team.id);
+  } catch (e) { alert('Could not create team: ' + e.message); }
+}
+
+async function deleteTeam() {
+  const teamId = document.getElementById('teamSelect').value;
+  const teamName = document.getElementById('teamSelect').selectedOptions[0]?.textContent;
+  if (!teamId) return alert('Select a team first.');
+  if (!confirm(`Delete team "${teamName}"? This also deletes all its repositories and their data.`)) return;
+  try {
+    await apiDelete(`/api/teams/${teamId}/`);
+    await loadTeams();
+  } catch (e) { alert('Could not delete team: ' + e.message); }
+}
+
+/* ---------- MANAGER: MEMBERS ---------- */
+async function loadMembers() {
+  const teamId = document.getElementById('teamSelect').value;
+  if (!teamId) return showResult('membersResult', 'Select a team first.', true);
+  try {
+    const members = await apiGet(`/api/teams/${teamId}/members/`);
+    if (!members.length) return showResult('membersResult', 'No members yet.');
+    let text = 'Members:\n\n';
+    members.forEach(m => { text += `${m.username} — ${m.role}\n`; });
+    showResult('membersResult', text);
+  } catch (e) { showResult('membersResult', e.message, true); }
+}
+
+async function addMember() {
+  const teamId = document.getElementById('teamSelect').value;
+  const username = document.getElementById('memberUsername').value.trim();
+  const role = document.getElementById('memberRole').value;
+  if (!teamId) return alert('Select a team first.');
+  if (!username) return alert('Type a username.');
+  try {
+    await apiPost(`/api/teams/${teamId}/add-member/`, { username, role });
+    document.getElementById('memberUsername').value = '';
+    await loadMembers();
+  } catch (e) { showResult('membersResult', 'Could not add member: ' + e.message, true); }
+}
+
+async function removeMember() {
+  const teamId = document.getElementById('teamSelect').value;
+  const username = document.getElementById('memberUsername').value.trim();
+  if (!teamId) return alert('Select a team first.');
+  if (!username) return alert('Type the username to remove.');
+  if (!confirm(`Remove ${username} from this team?`)) return;
+  try {
+    await fetch(`/api/teams/${teamId}/remove-member/`, {
+      method: 'POST',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ username })
+    });
+    document.getElementById('memberUsername').value = '';
+    await loadMembers();
+  } catch (e) { showResult('membersResult', 'Could not remove member: ' + e.message, true); }
+}
+
+/* ---------- MANAGER: REPOSITORIES ---------- */
+async function addRepo() {
+  const teamId = document.getElementById('teamSelect').value;
+  const fullName = document.getElementById('newRepoName').value.trim();
+  if (!teamId) return alert('Create or select a team first.');
+  if (!fullName) return alert('Type a repository like octocat/Hello-World');
+  showResult('syncResult', 'Adding and syncing... this may take a few seconds.');
+  try {
+    const repo = await apiPost('/api/repositories/', { team: teamId, full_name: fullName });
+    document.getElementById('newRepoName').value = '';
+    await loadRepos(teamId, repo.id);
+    await syncRepoId(repo.id);
+  } catch (e) { showResult('syncResult', 'Could not add repository: ' + e.message, true); }
+}
+
+async function deleteRepo() {
+  const repoId = document.getElementById('repoSelect').value;
+  const repoName = document.getElementById('repoSelect').selectedOptions[0]?.textContent;
+  if (!repoId) return alert('Select a repository first.');
+  if (!confirm(`Remove "${repoName}" from this team? This deletes all its synced PRs and commits too.`)) return;
+  try {
+    await apiDelete(`/api/repositories/${repoId}/`);
+    const teamId = document.getElementById('teamSelect').value;
+    await loadRepos(teamId);
+    showResult('syncResult', `🗑 Removed "${repoName}".`);
+  } catch (e) { alert('Could not delete repository: ' + e.message); }
+}
+
+async function syncSelectedRepo() {
+  const repoId = document.getElementById('repoSelect').value;
+  if (!repoId) return alert('Select a repository first.');
+  await syncRepoId(repoId);
+}
+
+async function syncRepoId(repoId) {
+  showResult('syncResult', 'Syncing... this may take a few seconds.');
+  try {
+    const data = await apiPost(`/api/repositories/${repoId}/sync/`);
+    showResult('syncResult',
+      `✅ Synced "${data.repository}"\n${data.prs_created} new pull requests found\n${data.commits_created} new commits found`);
+  } catch (e) {
+    let friendly = "Sync failed. ";
+    if (e.message.includes("Not found")) {
+      friendly += "This repository doesn't exist on GitHub, or the name has a typo. Use exactly owner/repo — for example octocat/Hello-World — with nothing else added.";
+    } else if (e.message.includes("rate limit")) {
+      friendly += "GitHub is temporarily limiting requests. Wait a few minutes and try again.";
+    } else {
+      friendly += "Please check the repository name and try again.";
+    }
+    showResult('syncResult', friendly, true);
+  }
+}
+
+async function showRepoDetails() {
+  const repoId = document.getElementById('repoSelect').value;
+  if (!repoId) return showResult('repoDetailsResult', 'Select a repository first.', true);
+  try {
+    const d = await apiGet(`/api/repositories/${repoId}/details/`);
+    showResult('repoDetailsResult',
+      `Repository: ${d.full_name}\nOwner: ${d.owner}\nDescription: ${d.description || '(none)'}\n` +
+      `⭐ Stars: ${d.stars}   🍴 Forks: ${d.forks}   🐞 Open issues: ${d.open_issues}\n` +
+      `Created on GitHub: ${d.created_on_github}`);
+  } catch (e) { showResult('repoDetailsResult', e.message, true); }
+}
+
+async function showFullReport() {
+  showResult('fullReportResult', 'Building full report...');
+  await Promise.all([codeChurn(), contributorActivity(), prTurnaround(), pendingReview(), showRepoDetails()]);
+  showResult('fullReportResult', '✅ Full report ready — scroll down, every section below is now updated.');
+}
+
+/* ---------- MANAGER: METRICS ---------- */
+async function commitTimeline() {
+  const repoId = document.getElementById('repoSelect').value;
+  if (!repoId) return showResult('timelineResult', 'Select a repository first.', true);
+  try {
+    const data = await apiGet(`/api/metrics/timeline/?repository_id=${repoId}&days=365`);
+    if (!data.weekly_commits.length) return showResult('timelineResult', 'No commit history found yet.');
+    let text = `Repository: ${data.repository}\n\n`;
+    const max = Math.max(...data.weekly_commits.map(w => w.commit_count));
+    data.weekly_commits.forEach(w => {
+      const bar = '█'.repeat(Math.max(1, Math.round((w.commit_count / max) * 25)));
+      text += `${w.week_start}  ${bar} ${w.commit_count}\n`;
+    });
+    showResult('timelineResult', text);
+  } catch (e) { showResult('timelineResult', e.message, true); }
+}
+
+async function codeChurn() {
+  const repoId = document.getElementById('repoSelect').value;
+  if (!repoId) return showResult('churnResult', 'Select a repository first.', true);
+  try {
+    const data = await apiGet(`/api/metrics/code-churn/?repository_id=${repoId}&days=3650`);
+    showResult('churnResult',
+      `Repository: ${data.repository}\nMerged pull requests: ${data.merged_pr_count}\nLines added: ${data.total_additions}\nLines removed: ${data.total_deletions}\nTotal lines changed (churn): ${data.net_churn}`);
+  } catch (e) { showResult('churnResult', e.message, true); }
+}
+
+async function contributorActivity() {
+  const teamId = document.getElementById('teamSelect').value;
+  if (!teamId) return showResult('contribResult', 'Select a team first.', true);
+  try {
+    const data = await apiGet(`/api/metrics/contributor-activity/?team_id=${teamId}&days=3650`);
+    if (!data.contributors.length) return showResult('contribResult', 'No contributor activity found yet.');
+    let text = `Team: ${data.team}\n\nTop contributors:\n`;
+    data.contributors.slice(0, 10).forEach((c, i) => { text += `${i + 1}. ${c.author} — ${c.commit_count} commits, ${c.merged_pr_count} merged PRs\n`; });
+    showResult('contribResult', text);
+  } catch (e) { showResult('contribResult', e.message, true); }
+}
+
+async function compareContributors() {
+  const teamId = document.getElementById('teamSelect').value;
+  const a = document.getElementById('compareA').value.trim();
+  const b = document.getElementById('compareB').value.trim();
+  if (!teamId) return showResult('compareResult', 'Select a team first.', true);
+  if (!a || !b) return showResult('compareResult', 'Enter both usernames.', true);
+  try {
+    const data = await apiGet(`/api/metrics/compare/?team_id=${teamId}&usernames=${a},${b}&days=3650`);
+    let text = '';
+    data.comparison.forEach(c => {
+      text += `${c.username}\n  Commits: ${c.commit_count}\n  PRs opened: ${c.prs_opened} | merged: ${c.prs_merged}\n  Lines added: ${c.lines_added} | removed: ${c.lines_removed}\n\n`;
+    });
+    showResult('compareResult', text);
+  } catch (e) { showResult('compareResult', e.message, true); }
+}
+
+async function prTurnaround() {
+  const repoId = document.getElementById('repoSelect').value;
+  if (!repoId) return showResult('turnaroundResult', 'Select a repository first.', true);
+  try {
+    const data = await apiGet(`/api/metrics/pr-turnaround/?repository_id=${repoId}&days=3650`);
+    const avg = data.average_turnaround_hours;
+    showResult('turnaroundResult',
+      `Repository: ${data.repository}\nReviewed pull requests: ${data.reviewed_pr_count}\n` +
+      (avg === null ? "No reviewed PRs found yet." : `Average time to first review: ${avg} hours`));
+  } catch (e) { showResult('turnaroundResult', e.message, true); }
+}
+
+async function pendingReview() {
+  const repoId = document.getElementById('repoSelect').value;
+  if (!repoId) return showResult('pendingResult', 'Select a repository first.', true);
+  try {
+    const data = await apiGet(`/api/pull-requests/pending-review/?repository=${repoId}`);
+    if (!data.results.length) return showResult('pendingResult', "No pending PRs — everything's been reviewed! 🎉");
+    let text = `${data.count} open PR(s) with no review yet:\n\n`;
+    data.results.slice(0, 10).forEach(pr => { text += `#${pr.number} — "${pr.title}" by ${pr.author_username}\n`; });
+    showResult('pendingResult', text);
+  } catch (e) { showResult('pendingResult', e.message, true); }
+}
+
+checkRoleAndInit();
+</script>
+
+</body>
+</html>
