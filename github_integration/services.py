@@ -83,7 +83,7 @@ def _parse_dt(value):
     return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
 
 
-def sync_repository(repository, max_prs: int = 50):
+def sync_repository(repository, max_prs: int = 20):
     """
     Pulls live PR + commit data from GitHub for a Repository and upserts it
     into our DB. Returns a small summary dict.
