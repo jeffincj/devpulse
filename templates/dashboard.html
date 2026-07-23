@@ -21,6 +21,7 @@
   .muted { color: #888; font-size: 13px; }
   .highlight { border: 2px solid #2980b9; }
   .warning { background:#fff8e1; border-left:4px solid #f9a825; }
+  .req-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
 </style>
 </head>
 <body>
@@ -50,10 +51,26 @@
     <div><input id="githubUsernameInput" placeholder="e.g. jeffincj"></div>
   </div>
   <button onclick="saveGithubUsername()">Save GitHub username</button>
+  <div id="githubUsernameResult"></div>
+</div>
+
+<div class="card" id="joinTeamCard" style="display:none;">
+  <h3>🔗 Join a team</h3>
+  <button onclick="loadPublicTeams()">Browse available teams</button>
+  <div id="publicTeamsResult"></div>
+  <h4 style="margin-top:20px;">My requests</h4>
+  <button onclick="loadMyRequests()">Refresh my requests</button>
+  <div id="myRequestsResult"></div>
 </div>
 
 <!-- ===================== MANAGER VIEW ===================== -->
 <div id="managerControls">
+
+  <div class="card">
+    <h3>📥 Pending join requests</h3>
+    <button onclick="loadPendingRequests()">Refresh pending requests</button>
+    <div id="pendingRequestsResult"></div>
+  </div>
 
   <div class="card">
     <h3>Your team</h3>
@@ -207,12 +224,72 @@ async function checkRoleAndInit() {
     if (role === 'developer') {
       document.getElementById('managerControls').style.display = 'none';
       document.getElementById('myStatsCard').style.display = 'block';
+      document.getElementById('joinTeamCard').style.display = 'block';
       document.getElementById('githubUsernameInput').value = me.profile.github_username || '';
       await loadMyStats();
+      await loadMyRequests();
     } else {
       await loadTeams();
+      await loadPendingRequests();
     }
   } catch (e) { console.error(e); }
+}
+
+/* ---------- DEVELOPER: JOIN A TEAM ---------- */
+async function loadPublicTeams() {
+  try {
+    const data = await apiGet('/api/public-teams/');
+    if (!data.results.length) return showResult('publicTeamsResult', 'No teams exist yet.');
+    let html = '';
+    data.results.forEach(t => {
+      html += `<div class="req-item"><span>${t.name} — managed by ${t.manager_username}</span>
+        <button onclick="sendJoinRequest(${t.id})">Request to join</button></div>`;
+    });
+    document.getElementById('publicTeamsResult').innerHTML = html;
+  } catch (e) { showResult('publicTeamsResult', e.message, true); }
+}
+
+async function sendJoinRequest(teamId) {
+  try {
+    await apiPost(`/api/teams/${teamId}/request-join/`);
+    showResult('publicTeamsResult', 'Request sent! The team manager will need to approve it.');
+    await loadMyRequests();
+  } catch (e) { showResult('publicTeamsResult', 'Could not send request: ' + e.message, true); }
+}
+
+async function loadMyRequests() {
+  try {
+    const data = await apiGet('/api/join-requests/mine/');
+    if (!data.length) return showResult('myRequestsResult', 'You have no requests yet.');
+    let text = '';
+    data.forEach(r => { text += `${r.team_name} (managed by ${r.manager_username}) — ${r.status}\n`; });
+    showResult('myRequestsResult', text);
+  } catch (e) { showResult('myRequestsResult', e.message, true); }
+}
+
+/* ---------- MANAGER: PENDING JOIN REQUESTS ---------- */
+async function loadPendingRequests() {
+  try {
+    const data = await apiGet('/api/join-requests/pending/');
+    if (!data.length) return showResult('pendingRequestsResult', 'No pending requests right now.');
+    let html = '';
+    data.forEach(r => {
+      html += `<div class="req-item"><span>${r.username} wants to join "${r.team_name}"</span>
+        <span>
+          <button class="accept" onclick="decideRequest(${r.id}, 'accept')">Accept</button>
+          <button class="reject" onclick="decideRequest(${r.id}, 'reject')">Reject</button>
+        </span></div>`;
+    });
+    document.getElementById('pendingRequestsResult').innerHTML = html;
+  } catch (e) { showResult('pendingRequestsResult', e.message, true); }
+}
+
+async function decideRequest(requestId, decision) {
+  try {
+    await apiPost(`/api/join-requests/${requestId}/decide/`, { decision });
+    await loadPendingRequests();
+    await loadMembers();
+  } catch (e) { showResult('pendingRequestsResult', 'Could not process request: ' + e.message, true); }
 }
 
 /* ---------- DEVELOPER: MY STATS (per-repository breakdown) ---------- */
@@ -247,12 +324,14 @@ async function saveGithubUsername() {
     });
     const data = await res.json();
     if (!res.ok) {
-      alert('Could not save: ' + JSON.stringify(data));
+      showResult('githubUsernameResult', 'Could not save: ' + JSON.stringify(data), true);
       return;
     }
+    showResult('githubUsernameResult', '✅ GitHub username saved.');
     await loadMyStats();
-  } catch (e) { alert('Could not save: ' + e); }
+  } catch (e) { showResult('githubUsernameResult', 'Could not save: ' + e, true); }
 }
+
 /* ---------- MANAGER: TEAMS ---------- */
 async function loadTeams(selectId) {
   const data = await apiGet('/api/teams/');
