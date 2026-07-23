@@ -41,6 +41,17 @@ class MeView(generics.RetrieveUpdateAPIView):
                             "This GitHub username is already linked to another account."
                         ]}}
                     )
+
+                from github_integration.services import GitHubClient, GitHubAPIError
+                try:
+                    GitHubClient()._get(f"/users/{new_username}")
+                except GitHubAPIError:
+                    raise ValidationError(
+                        {"profile": {"github_username": [
+                            "This GitHub username doesn't exist. Double-check the spelling."
+                        ]}}
+                    )
+
             request.user.profile.github_username = new_username
 
         if "role" in profile_data and profile_data["role"] in ("manager", "developer"):
