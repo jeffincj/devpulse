@@ -239,9 +239,10 @@ async function checkRoleAndInit() {
 async function loadPublicTeams() {
   try {
     const data = await apiGet('/api/public-teams/');
-    if (!data.results.length) return showResult('publicTeamsResult', 'No teams exist yet.');
+    const teamsList = data.results || data;
+    if (!teamsList.length) return showResult('publicTeamsResult', 'No teams exist yet.');
     let html = '';
-    data.results.forEach(t => {
+    teamsList.forEach(t => {
       html += `<div class="req-item"><span>${t.name} — managed by ${t.manager_username}</span>
         <button onclick="sendJoinRequest(${t.id})">Request to join</button></div>`;
     });
@@ -260,9 +261,10 @@ async function sendJoinRequest(teamId) {
 async function loadMyRequests() {
   try {
     const data = await apiGet('/api/join-requests/mine/');
-    if (!data.length) return showResult('myRequestsResult', 'You have no requests yet.');
+    const requests = data.results || data;
+    if (!requests.length) return showResult('myRequestsResult', 'You have no requests yet.');
     let text = '';
-    data.forEach(r => { text += `${r.team_name} (managed by ${r.manager_username}) — ${r.status}\n`; });
+    requests.forEach(r => { text += `${r.team_name} (managed by ${r.manager_username}) — ${r.status}\n`; });
     showResult('myRequestsResult', text);
   } catch (e) { showResult('myRequestsResult', e.message, true); }
 }
@@ -271,9 +273,10 @@ async function loadMyRequests() {
 async function loadPendingRequests() {
   try {
     const data = await apiGet('/api/join-requests/pending/');
-    if (!data.length) return showResult('pendingRequestsResult', 'No pending requests right now.');
+    const requests = data.results || data;
+    if (!requests.length) return showResult('pendingRequestsResult', 'No pending requests right now.');
     let html = '';
-    data.forEach(r => {
+    requests.forEach(r => {
       html += `<div class="req-item"><span>${r.username} wants to join "${r.team_name}"</span>
         <span>
           <button class="accept" onclick="decideRequest(${r.id}, 'accept')">Accept</button>
