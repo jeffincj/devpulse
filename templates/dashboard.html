@@ -3,55 +3,144 @@
 <head>
 <meta charset="UTF-8">
 <title>DevPulse Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body { font-family: Arial, sans-serif; max-width: 850px; margin: 30px auto; background: #f5f6fa; color: #222; }
-  .topbar { display: flex; justify-content: space-between; align-items: center; }
-  h1 { color: #2c3e50; }
-  .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-  label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
-  input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
-  button { margin-top: 12px; padding: 10px 16px; border: none; border-radius: 6px; background: #2980b9; color: white; font-size: 14px; cursor: pointer; margin-right: 8px; }
-  button:hover { background: #1c5980; }
-  button.secondary { background: #7f8c8d; }
-  button.secondary:hover { background: #626c6d; }
-  .result { margin-top: 15px; padding: 15px; background: #eef7ee; border-left: 4px solid #27ae60; border-radius: 4px; white-space: pre-wrap; }
-  .error { background: #fdecea; border-left-color: #e74c3c; }
-  .notice { background: #fff8e1; border-left-color: #f9a825; }
-  .row { display: flex; gap: 10px; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    background: #0b0f19;
+    color: #e2e8f0;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #1e293b;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+  }
+  h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 0; letter-spacing: -0.3px; }
+
+  .card {
+    background: #131a29;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: #2d3d54; }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h4 { font-size: 13px; font-weight: 600; color: #cbd5e1; margin: 18px 0 8px 0; }
+
+  label { display: block; margin-top: 12px; font-weight: 600; font-size: 12.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; }
+  input, select {
+    width: 100%; padding: 10px 12px; margin-top: 5px;
+    background: #0f1522; border: 1px solid #263145; border-radius: 8px;
+    color: #e2e8f0; font-size: 14px; font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { outline: none; border-color: #3b82f6; }
+  input::placeholder { color: #4b5871; }
+
+  button {
+    margin-top: 14px; padding: 10px 18px; border: none; border-radius: 8px;
+    background: #2563eb; color: white; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; margin-right: 8px; transition: background 0.15s, transform 0.1s;
+    font-family: inherit;
+  }
+  button:hover { background: #1d4ed8; }
+  button:active { transform: scale(0.97); }
+  button.secondary { background: #1e293b; color: #cbd5e1; }
+  button.secondary:hover { background: #263449; }
+  button.accept { background: #16a34a; }
+  button.accept:hover { background: #15803d; }
+  button.reject { background: #dc2626; }
+  button.reject:hover { background: #b91c1c; }
+
+  .result {
+    margin-top: 14px; padding: 14px 16px;
+    background: #0f1e14; border-left: 3px solid #22c55e; border-radius: 8px;
+    white-space: pre-wrap; font-size: 13.5px; line-height: 1.6; color: #d1e7d6;
+  }
+  .error { background: #250f12; border-left-color: #ef4444; color: #f3c4c4; }
+  .notice { background: #241c0a; border-left-color: #f59e0b; color: #f3dfb3; }
+
+  .row { display: flex; gap: 12px; }
   .row > div { flex: 1; }
-  .muted { color: #888; font-size: 13px; }
-  .highlight { border: 2px solid #2980b9; }
-  .warning { background:#fff8e1; border-left:4px solid #f9a825; }
-  .req-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-  .lb-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
-  .lb-toggle button { margin: 0; background: #ecf0f1; color: #2c3e50; }
-  .lb-toggle button.active { background: #2980b9; color: white; }
-  .lb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 10px; }
-  .lb-card { background: #f8f9fa; border-radius: 10px; padding: 16px; border-left: 5px solid #bbb; }
-  .lb-card.rank-1 { border-left-color: #f1c40f; background: #fffbe6; }
-  .lb-card.rank-2 { border-left-color: #bdc3c7; background: #f4f5f6; }
-  .lb-card.rank-3 { border-left-color: #cd853f; background: #fdf3e8; }
-  .lb-rank { font-size: 22px; font-weight: bold; color: #2980b9; }
-  .lb-name { font-size: 16px; font-weight: bold; margin: 4px 0; }
-  .lb-stat { font-size: 13px; color: #555; margin: 2px 0; }
-  .lb-score { font-size: 13px; color: #27ae60; font-weight: bold; margin-top: 6px; }
+  .muted { color: #64748b; font-size: 12.5px; margin: 6px 0; }
+
+  .highlight { border: 1px solid #2563eb; box-shadow: 0 0 0 1px rgba(37,99,235,0.15); }
+  .alert-card { border: 1px solid #f59e0b; box-shadow: 0 0 0 1px rgba(245,158,11,0.12); }
+
+  .warning-banner {
+    background: #1c1608; border: 1px solid #4a3a0e; border-left: 3px solid #f59e0b;
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 24px; font-size: 13.5px; color: #eabc6a;
+  }
+  .warning-banner strong { color: #fbbf24; }
+
+  .req-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid #1e293b; font-size: 13.5px; color: #cbd5e1;
+  }
+  .req-item:last-child { border-bottom: none; }
+
+  .lb-toggle { display: flex; gap: 6px; margin-bottom: 16px; }
+  .lb-toggle button { margin: 0; background: #1a2332; color: #94a3b8; font-size: 12.5px; padding: 8px 14px; }
+  .lb-toggle button.active { background: #2563eb; color: white; }
+
+  .lb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-top: 10px; }
+  .lb-card {
+    background: #0f1522; border-radius: 12px; padding: 16px;
+    border: 1px solid #1e293b; border-left: 3px solid #334155;
+  }
+  .lb-card.rank-1 { border-left-color: #fbbf24; background: linear-gradient(135deg, #1a1608, #131a29); }
+  .lb-card.rank-2 { border-left-color: #cbd5e1; background: linear-gradient(135deg, #16191f, #131a29); }
+  .lb-card.rank-3 { border-left-color: #d97706; background: linear-gradient(135deg, #1a1108, #131a29); }
+  .lb-rank { font-size: 20px; font-weight: 700; color: #60a5fa; }
+  .lb-name { font-size: 14.5px; font-weight: 700; margin: 6px 0; color: #f1f5f9; }
+  .lb-stat { font-size: 12.5px; color: #94a3b8; margin: 3px 0; }
+  .lb-score { font-size: 12.5px; color: #4ade80; font-weight: 700; margin-top: 8px; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #0b0f19; }
+  ::-webkit-scrollbar-thumb { background: #263449; border-radius: 5px; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <h1>📊 DevPulse Dashboard</h1>
+  <div class="brand">
+    <div class="brand-dot">📊</div>
+    <h1>DevPulse</h1>
+  </div>
   <button class="secondary" onclick="logout()">Log out</button>
 </div>
 
-<div class="card warning">
-  <strong>⚠️ Important: this tool measures whole repositories, not folders.</strong>
-  <p style="margin:8px 0 0 0; font-size:14px;">
-    Add repositories where the <b>entire repo</b> is one single project — not a repo that
-    contains multiple unrelated projects in separate folders. If a repo has several projects
-    mixed together, all activity will be counted as one combined total, which won't give a
-    fair or accurate comparison between people or projects.
-  </p>
+<div class="warning-banner">
+  <strong>⚠️ Note:</strong> this tool measures whole repositories, not folders. Add repositories where the <b>entire repo</b> is one single project — mixed-project repos will show combined totals that aren't a fair comparison.
 </div>
 
 <!-- ===================== DEVELOPER VIEW ===================== -->
@@ -59,7 +148,7 @@
   <h3>📈 My Personal Stats</h3>
   <button onclick="loadMyStats()">Refresh My Stats</button>
   <div id="myStatsResult"></div>
-  <label style="margin-top:16px;">Your GitHub username</label>
+  <label>Your GitHub username</label>
   <div class="row">
     <div><input id="githubUsernameInput" placeholder="e.g. jeffincj"></div>
   </div>
@@ -71,7 +160,7 @@
   <h3>🔗 Join a team</h3>
   <button onclick="loadPublicTeams()">Browse available teams</button>
   <div id="publicTeamsResult"></div>
-  <h4 style="margin-top:20px;">My requests</h4>
+  <h4>My requests</h4>
   <button onclick="loadMyRequests()">Refresh my requests</button>
   <div id="myRequestsResult"></div>
 </div>
@@ -79,9 +168,9 @@
 <!-- ===================== MANAGER VIEW ===================== -->
 <div id="managerControls">
 
-  <div class="card" style="border: 2px solid #f9a825;">
+  <div class="card alert-card">
     <h3>🚩 Smart Alerts</h3>
-    <p class="muted" style="margin-top:-6px;">Not a scorecard — just things worth a quick check-in with your team.</p>
+    <p class="muted">Not a scorecard — just things worth a quick check-in with your team.</p>
     <button onclick="loadFlags()">Check for issues</button>
     <div id="flagsResult"></div>
   </div>
@@ -166,19 +255,22 @@
   </div>
 
   <div class="card">
-    <h3>Weekly Commit Timeline (spot consistent work vs. last-minute rush)</h3>
+    <h3>Weekly Commit Timeline</h3>
+    <p class="muted">Spot consistent work vs. last-minute rush.</p>
     <button onclick="commitTimeline()">Show Timeline</button>
     <div id="timelineResult"></div>
   </div>
 
   <div class="card">
-    <h3>Code Churn (lines added/removed)</h3>
+    <h3>Code Churn</h3>
+    <p class="muted">Lines added/removed.</p>
     <button onclick="codeChurn()">Show Code Churn</button>
     <div id="churnResult"></div>
   </div>
 
   <div class="card">
-    <h3>Contributor Activity (who's doing the most work)</h3>
+    <h3>Contributor Activity</h3>
+    <p class="muted">Who's doing the most work.</p>
     <button onclick="contributorActivity()">Show Contributors</button>
     <div id="contribResult"></div>
   </div>
@@ -194,13 +286,15 @@
   </div>
 
   <div class="card">
-    <h3>PR Review Turnaround (how fast reviews happen)</h3>
+    <h3>PR Review Turnaround</h3>
+    <p class="muted">How fast reviews happen.</p>
     <button onclick="prTurnaround()">Show Turnaround</button>
     <div id="turnaroundResult"></div>
   </div>
 
   <div class="card">
-    <h3>Pending Review (open PRs nobody has reviewed)</h3>
+    <h3>Pending Review</h3>
+    <p class="muted">Open PRs nobody has reviewed.</p>
     <button onclick="pendingReview()">Show Pending PRs</button>
     <div id="pendingResult"></div>
   </div>

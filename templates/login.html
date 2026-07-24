@@ -3,53 +3,135 @@
 <head>
 <meta charset="UTF-8">
 <title>DevPulse — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: Arial, sans-serif; background: #f5f6fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-  .box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); width: 320px; }
-  h1 { text-align: center; color: #2c3e50; font-size: 22px; }
-  .tabs { display: flex; margin-bottom: 20px; }
-  .tab { flex: 1; text-align: center; padding: 8px; cursor: pointer; border-bottom: 2px solid #ddd; color: #888; }
-  .tab.active { border-bottom: 2px solid #2980b9; color: #2980b9; font-weight: bold; }
-  input, select { width: 100%; padding: 10px; margin-top: 6px; margin-bottom: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
-  label { font-size: 13px; color: #555; }
-  button { width: 100%; padding: 10px; border: none; border-radius: 6px; background: #2980b9; color: white; font-size: 15px; cursor: pointer; }
-  button:hover { background: #1c5980; }
-  .error { color: #e74c3c; font-size: 13px; margin-top: -6px; margin-bottom: 10px; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    background: #0b0f19;
+  }
+
+  /* Left panel — brand side */
+  .brand-panel {
+    flex: 1;
+    background: radial-gradient(circle at 30% 20%, #1e3a5f 0%, #0b0f19 60%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-panel::before {
+    content: "";
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    border-radius: 50%;
+  }
+  .brand-logo { font-size: 15px; letter-spacing: 3px; color: #60a5fa; font-weight: 600; text-transform: uppercase; margin-bottom: 24px; }
+  .brand-title { font-size: 42px; font-weight: 700; line-height: 1.2; margin: 0 0 20px 0; }
+  .brand-sub { font-size: 16px; color: #94a3b8; max-width: 380px; line-height: 1.6; }
+  .brand-stats { display: flex; gap: 36px; margin-top: 48px; }
+  .brand-stat-num { font-size: 26px; font-weight: 700; color: #60a5fa; }
+  .brand-stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+  /* Right panel — form side (now dark, matching dashboard) */
+  .form-panel {
+    width: 460px;
+    background: #0f1522;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    border-left: 1px solid #1e293b;
+  }
+  .form-box { width: 100%; max-width: 340px; }
+  .form-heading { font-size: 24px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+  .form-subheading { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+
+  .tabs { display: flex; background: #131a29; border-radius: 10px; padding: 4px; margin-bottom: 28px; border: 1px solid #1e293b; }
+  .tab { flex: 1; text-align: center; padding: 9px; cursor: pointer; border-radius: 8px; font-size: 14px; font-weight: 600; color: #64748b; transition: all 0.15s; }
+  .tab.active { background: #1e293b; color: #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+  label { display: block; font-size: 12.5px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; margin-top: 16px; }
+  input, select {
+    width: 100%; padding: 11px 12px; font-size: 14px; font-family: inherit;
+    background: #131a29; border: 1.5px solid #263145; border-radius: 8px; outline: none;
+    color: #e2e8f0; transition: border-color 0.15s;
+  }
+  input::placeholder { color: #4b5871; }
+  input:focus, select:focus { border-color: #3b82f6; }
+
+  button.primary {
+    width: 100%; margin-top: 24px; padding: 12px; border: none; border-radius: 8px;
+    background: #2563eb; color: white; font-size: 14.5px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s; font-family: inherit;
+  }
+  button.primary:hover { background: #1d4ed8; }
+
+  .error { color: #f87171; font-size: 13px; margin-top: 10px; }
   .hidden { display: none; }
+
+  @media (max-width: 900px) {
+    .brand-panel { display: none; }
+    .form-panel { width: 100%; border-left: none; }
+  }
 </style>
 </head>
 <body>
 
-<div class="box">
-  <h1>📊 DevPulse</h1>
-  <div class="tabs">
-    <div class="tab active" id="loginTab" onclick="showTab('login')">Log in</div>
-    <div class="tab" id="registerTab" onclick="showTab('register')">Register</div>
+<div class="brand-panel">
+  <div class="brand-logo">DEVPULSE</div>
+  <h1 class="brand-title">Engineering visibility,<br>without the guesswork.</h1>
+  <p class="brand-sub">Real-time GitHub analytics for teams — sprint velocity, review turnaround, code churn, and contributor activity, computed automatically.</p>
+  <div class="brand-stats">
+    <div><div class="brand-stat-num">Live</div><div class="brand-stat-label">GitHub sync</div></div>
+    <div><div class="brand-stat-num">Team</div><div class="brand-stat-label">and repo insights</div></div>
+    <div><div class="brand-stat-num">Zero</div><div class="brand-stat-label">manual reports</div></div>
   </div>
+</div>
 
-  <div id="loginForm">
-    <label>Username</label>
-    <input id="loginUsername">
-    <label>Password</label>
-    <input id="loginPassword" type="password">
-    <div class="error" id="loginError"></div>
-    <button onclick="login()">Log in</button>
-  </div>
+<div class="form-panel">
+  <div class="form-box">
+    <div class="form-heading">Welcome back</div>
+    <div class="form-subheading">Sign in to view your team's engineering metrics.</div>
 
-  <div id="registerForm" class="hidden">
-    <label>Username</label>
-    <input id="regUsername">
-    <label>Email</label>
-    <input id="regEmail">
-    <label>Password</label>
-    <input id="regPassword" type="password">
-    <label>Role</label>
-    <select id="regRole">
-      <option value="manager">Manager</option>
-      <option value="developer">Developer</option>
-    </select>
-    <div class="error" id="registerError"></div>
-    <button onclick="register()">Create account</button>
+    <div class="tabs">
+      <div class="tab active" id="loginTab" onclick="showTab('login')">Log in</div>
+      <div class="tab" id="registerTab" onclick="showTab('register')">Register</div>
+    </div>
+
+    <div id="loginForm">
+      <label>Username</label>
+      <input id="loginUsername">
+      <label>Password</label>
+      <input id="loginPassword" type="password">
+      <div class="error" id="loginError"></div>
+      <button class="primary" onclick="login()">Log in</button>
+    </div>
+
+    <div id="registerForm" class="hidden">
+      <label>Username</label>
+      <input id="regUsername">
+      <label>Email</label>
+      <input id="regEmail">
+      <label>Password</label>
+      <input id="regPassword" type="password">
+      <label>Role</label>
+      <select id="regRole">
+        <option value="manager">Manager</option>
+        <option value="developer">Developer</option>
+      </select>
+      <div class="error" id="registerError"></div>
+      <button class="primary" onclick="register()">Create account</button>
+    </div>
   </div>
 </div>
 
@@ -95,7 +177,6 @@ async function register() {
     });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = JSON.stringify(data); return; }
-    // auto-login right after registering
     document.getElementById('loginUsername').value = username;
     document.getElementById('loginPassword').value = password;
     showTab('login');
