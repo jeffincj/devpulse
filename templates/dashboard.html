@@ -33,6 +33,18 @@
   }
   h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 0; letter-spacing: -0.3px; }
 
+  .nav-link {
+    padding: 8px 14px; border-radius: 7px; font-size: 13.5px; font-weight: 600;
+    color: #94a3b8; text-decoration: none; cursor: pointer; transition: all 0.15s;
+  }
+  .nav-link:hover { background: #1a2332; color: #e2e8f0; }
+  .nav-link.active { background: #1e293b; color: #f1f5f9; }
+  .nav-avatar {
+    width: 32px; height: 32px; border-radius: 50%; margin-left: 8px;
+    background: #2563eb; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: white; overflow: hidden;
+  }
+
   .card {
     background: #131a29;
     border: 1px solid #1e293b;
@@ -136,7 +148,12 @@
     <div class="brand-dot">📊</div>
     <h1>DevPulse</h1>
   </div>
-  <button class="secondary" onclick="logout()">Log out</button>
+  <div style="display:flex; align-items:center; gap:6px;">
+    <a class="nav-link active">Dashboard</a>
+    <a class="nav-link" onclick="window.location.href='/profile/'">Profile</a>
+    <div id="navAvatar" class="nav-avatar">?</div>
+    <button class="secondary" onclick="logout()" style="margin-left:10px;">Log out</button>
+  </div>
 </div>
 
 <div class="warning-banner">
@@ -345,6 +362,15 @@ async function apiDelete(url) {
 async function checkRoleAndInit() {
   try {
     const me = await apiGet('/api/auth/me/');
+
+    const initials = (me.profile.full_name || me.username || '?').trim().charAt(0).toUpperCase();
+    const navAvatar = document.getElementById('navAvatar');
+    if (me.profile.photo_url) {
+      navAvatar.innerHTML = `<img src="${me.profile.photo_url}" style="width:100%;height:100%;object-fit:cover;">`;
+    } else {
+      navAvatar.textContent = initials;
+    }
+
     const role = me.profile.role;
     if (role === 'developer') {
       document.getElementById('managerControls').style.display = 'none';
