@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DevPulse — My Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    background: #0b0f19;
+    color: #e2e8f0;
+  }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #1e293b;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 0; }
+  .topbar-actions { display: flex; gap: 10px; }
+
+  .card {
+    background: #131a29; border: 1px solid #1e293b; border-radius: 14px;
+    padding: 24px; margin-bottom: 18px;
+  }
+  h3 { font-size: 15px; font-weight: 600; color: #f1f5f9; margin: 0 0 4px 0; }
+  .muted { color: #64748b; font-size: 12.5px; margin: 6px 0 16px 0; }
+
+  label {
+    display: block; margin-top: 14px; font-weight: 600; font-size: 12.5px;
+    color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  input, select {
+    width: 100%; padding: 10px 12px; margin-top: 5px;
+    background: #0f1522; border: 1px solid #263145; border-radius: 8px;
+    color: #e2e8f0; font-size: 14px; font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: #3b82f6; }
+  input:disabled { color: #64748b; background: #0a0e17; }
+
+  button {
+    margin-top: 16px; padding: 10px 18px; border: none; border-radius: 8px;
+    background: #2563eb; color: white; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; margin-right: 8px; font-family: inherit;
+  }
+  button:hover { background: #1d4ed8; }
+  button.secondary { background: #1e293b; color: #cbd5e1; }
+  button.secondary:hover { background: #263449; }
+
+  .result {
+    margin-top: 14px; padding: 14px 16px;
+    background: #0f1e14; border-left: 3px solid #22c55e; border-radius: 8px;
+    font-size: 13.5px; color: #d1e7d6;
+  }
+  .error { background: #250f12; border-left-color: #ef4444; color: #f3c4c4; }
+
+  .badge {
+    display: inline-block; padding: 4px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; background: #1e293b; color: #93c5fd;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot">📊</div>
+    <h1>My Profile</h1>
+  </div>
+  <div class="topbar-actions">
+    <button class="secondary" onclick="window.location.href='/dashboard/'">← Back to Dashboard</button>
+    <button class="secondary" onclick="logout()">Log out</button>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Account details</h3>
+  <p class="muted">This information is used across your teams and reports.</p>
+
+  <label>Username</label>
+  <input id="username" disabled>
+
+  <label>Email</label>
+  <input id="email" disabled>
+
+  <label>Role</label>
+  <input id="role" disabled>
+
+  <label>Full name</label>
+  <input id="fullName" placeholder="e.g. Jeffin C John">
+
+  <label>Date of birth</label>
+  <input id="dob" type="date">
+
+  <label>Age</label>
+  <input id="age" disabled placeholder="calculated automatically">
+
+  <label>GitHub username</label>
+  <input id="githubUsername" placeholder="e.g. jeffincj">
+
+  <button onclick="saveProfile()">Save changes</button>
+  <div id="profileResult"></div>
+</div>
+
+<div class="card">
+  <h3>Change password</h3>
+  <p class="muted">You'll need your current password to set a new one.</p>
+
+  <label>Current password</label>
+  <input id="oldPassword" type="password">
+
+  <label>New password</label>
+  <input id="newPassword" type="password">
+
+  <button onclick="changePassword()">Update password</button>
+  <div id="passwordResult"></div>
+</div>
+
+<div class="card" id="feedbackCard" style="display:none;">
+  <h3>💬 Feedback you've received</h3>
+  <button onclick="loadReceivedFeedback()">Refresh</button>
+  <div id="receivedFeedbackResult"></div>
+</div>
+
+<script>
+const token = localStorage.getItem('devpulse_access');
+if (!token) window.location.href = '/login/';
+
+function headers(extra) {
+  return Object.assign({ "Authorization": "Bearer " + token }, extra || {});
+}
+
+function logout() {
+  localStorage.removeItem('devpulse_access');
+  localStorage.removeItem('devpulse_refresh');
+  window.location.href = '/login/';
+}
+
+function showResult(id, text, isError) {
+  document.getElementById(id).innerHTML =
+    "<div class='result" + (isError ? " error" : "") + "'>" + text + "</div>";
+}
+
+async function loadProfile() {
+  try {
+    const res = await fetch('/api/auth/me/', { headers: headers() });
+    const data = await res.json();
+    if (!res.ok) { window.location.href = '/login/'; return; }
+
+    document.getElementById('username').value = data.username;
+    document.getElementById('email').value = data.email || '';
+    document.getElementById('role').value = data.profile.role;
+    document.getElementById('fullName').value = data.profile.full_name || '';
+    document.getElementById('dob').value = data.profile.date_of_birth || '';
+    document.getElementById('age').value = data.profile.age !== null ? data.profile.age : '';
+    document.getElementById('githubUsername').value = data.profile.github_username || '';
+
+    document.getElementById('feedbackCard').style.display = 'block';
+    await loadReceivedFeedback();
+  } catch (e) { console.error(e); }
+}
+
+async function saveProfile() {
+  const body = {
+    profile: {
+      full_name: document.getElementById('fullName').value,
+      date_of_birth: document.getElementById('dob').value || null,
+      github_username: document.getElementById('githubUsername').value,
+    }
+  };
+  try {
+    const res = await fetch('/api/auth/me/', {
+      method: 'PATCH',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) { showResult('profileResult', 'Could not save: ' + JSON.stringify(data), true); return; }
+    document.getElementById('age').value = data.profile.age !== null ? data.profile.age : '';
+    showResult('profileResult', '✅ Profile updated.');
+  } catch (e) { showResult('profileResult', 'Error: ' + e, true); }
+}
+
+async function changePassword() {
+  const old_password = document.getElementById('oldPassword').value;
+  const new_password = document.getElementById('newPassword').value;
+  if (!old_password || !new_password) { showResult('passwordResult', 'Fill in both fields.', true); return; }
+  try {
+    const res = await fetch('/api/auth/change-password/', {
+      method: 'POST',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ old_password, new_password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showResult('passwordResult', JSON.stringify(data.detail || data), true); return; }
+    document.getElementById('oldPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    showResult('passwordResult', '✅ Password updated successfully.');
+  } catch (e) { showResult('passwordResult', 'Error: ' + e, true); }
+}
+
+async function loadReceivedFeedback() {
+  try {
+    const res = await fetch('/api/feedback/received/', { headers: headers() });
+    const data = await res.json();
+    const items = data.results || data;
+    if (!items.length) { showResult('receivedFeedbackResult', 'No feedback received yet.'); return; }
+    let text = '';
+    items.forEach(f => {
+      text += `From ${f.sender_username}` + (f.repository_name ? ` (about ${f.repository_name})` : '') + `:\n"${f.message}"\n\n`;
+    });
+    document.getElementById('receivedFeedbackResult').innerHTML = "<div class='result'>" + text.replace(/\n/g, '<br>') + "</div>";
+  } catch (e) { showResult('receivedFeedbackResult', 'Error: ' + e, true); }
+}
+
+loadProfile();
+</script>
+
+</body>
+</html>
