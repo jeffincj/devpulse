@@ -127,7 +127,9 @@
   .lb-card {
     background: #0f1522; border-radius: 12px; padding: 16px;
     border: 1px solid #1e293b; border-left: 3px solid #334155;
+    transition: transform 0.1s, border-color 0.15s;
   }
+  .lb-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
   .lb-card.rank-1 { border-left-color: #fbbf24; background: linear-gradient(135deg, #1a1608, #131a29); }
   .lb-card.rank-2 { border-left-color: #cbd5e1; background: linear-gradient(135deg, #16191f, #131a29); }
   .lb-card.rank-3 { border-left-color: #d97706; background: linear-gradient(135deg, #1a1108, #131a29); }
@@ -135,6 +137,9 @@
   .lb-name { font-size: 14.5px; font-weight: 700; margin: 6px 0; color: #f1f5f9; }
   .lb-stat { font-size: 12.5px; color: #94a3b8; margin: 3px 0; }
   .lb-score { font-size: 12.5px; color: #4ade80; font-weight: 700; margin-top: 8px; }
+
+  #personModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center; }
+  #personModal .modal-box { background:#131a29; border:1px solid #1e293b; border-radius:14px; padding:24px; width:90%; max-width:420px; }
 
   ::-webkit-scrollbar { width: 10px; }
   ::-webkit-scrollbar-track { background: #0b0f19; }
@@ -194,6 +199,7 @@
 
   <div class="card highlight">
     <h3>🏆 Team Performance Leaderboard</h3>
+    <p class="muted">Click any name to view their profile or send feedback.</p>
     <div class="lb-toggle">
       <button id="lbWeek" onclick="loadLeaderboard('week')">Weekly</button>
       <button id="lbMonth" onclick="loadLeaderboard('month')">Monthly</button>
@@ -318,6 +324,20 @@
 
 </div>
 
+<div id="personModal">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 id="personModalName" style="margin:0;">Loading...</h3>
+      <button class="secondary" onclick="closePersonModal()" style="margin:0; padding:6px 10px;">✕</button>
+    </div>
+    <div id="personModalDetails"></div>
+    <label>Send feedback</label>
+    <input id="feedbackMessage" placeholder="e.g. Great work reviewing PRs this week!">
+    <button onclick="sendFeedbackToPerson()">Send</button>
+    <div id="feedbackSendResult"></div>
+  </div>
+</div>
+
 <script>
 const token = localStorage.getItem('devpulse_access');
 if (!token) window.location.href = '/login/';
@@ -429,9 +449,9 @@ async function loadLeaderboard(period) {
       const rankClass = p.rank <= 3 ? `rank-${p.rank}` : '';
       const medal = p.rank <= 3 ? medals[p.rank - 1] : `#${p.rank}`;
       html += `
-        <div class="lb-card ${rankClass}">
+        <div class="lb-card ${rankClass}" onclick="openPersonModal('${p.author}')" style="cursor:pointer;">
           <div class="lb-rank">${medal}</div>
-          <div class="lb-name">${p.author}</div>
+          <div class="lb-name">${p.author} 👤</div>
           <div class="lb-stat">📝 ${p.commits} commits</div>
           <div class="lb-stat">✅ ${p.merged_prs} merged PRs</div>
           <div class="lb-stat">📅 Active ${p.active_weeks} week(s)</div>
@@ -442,6 +462,48 @@ async function loadLeaderboard(period) {
     document.getElementById('leaderboardResult').innerHTML = html;
   } catch (e) {
     document.getElementById('leaderboardResult').innerHTML = "<div class='result error'>" + e.message + "</div>";
+  }
+}
+
+let currentPersonGithub = null;
+
+async function openPersonModal(githubUsername) {
+  currentPersonGithub = githubUsername;
+  document.getElementById('personModal').style.display = 'flex';
+  document.getElementById('personModalName').textContent = githubUsername;
+  document.getElementById('feedbackMessage').value = '';
+  document.getElementById('feedbackSendResult').innerHTML = '';
+  try {
+    const data = await apiGet(`/api/auth/users/by-github/${githubUsername}/`);
+    document.getElementById('personModalDetails').innerHTML =
+      `<p class="muted">Registered as: <b style="color:#e2e8f0;">${data.username}</b> (${data.role})<br>Full name: ${data.full_name || 'not set'}</p>`;
+  } catch (e) {
+    document.getElementById('personModalDetails').innerHTML =
+      "<p class='muted'>This contributor isn't a registered DevPulse user, so feedback can't be linked to an account yet — GitHub commit data only.</p>";
+  }
+}
+
+function closePersonModal() {
+  document.getElementById('personModal').style.display = 'none';
+}
+
+async function sendFeedbackToPerson() {
+  const message = document.getElementById('feedbackMessage').value.trim();
+  if (!message) return;
+  try {
+    const data = await apiGet(`/api/auth/users/by-github/${currentPersonGithub}/`);
+    const teamId = document.getElementById('teamSelect').value;
+    const repoId = document.getElementById('repoSelect').value;
+    await apiPost('/api/feedback/', {
+      recipient_username: data.username,
+      team: teamId || null,
+      repository: repoId || null,
+      message: message,
+    });
+    document.getElementById('feedbackSendResult').innerHTML = "<div class='result'>✅ Feedback sent.</div>";
+  } catch (e) {
+    document.getElementById('feedbackSendResult').innerHTML =
+      "<div class='result error'>Could not send — this person may not have a registered DevPulse account linked to that GitHub username yet.</div>";
   }
 }
 
