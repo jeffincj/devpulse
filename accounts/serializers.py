@@ -9,7 +9,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["role", "github_username", "full_name", "date_of_birth", "age"]
+        fields = ["role", "github_username", "full_name", "date_of_birth", "age", "gender", "photo_url"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,14 +21,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PublicProfileSerializer(serializers.ModelSerializer):
-    """Safe, limited info shown when one user views another's profile."""
     role = serializers.CharField(source="profile.role", read_only=True)
     github_username = serializers.CharField(source="profile.github_username", read_only=True)
     full_name = serializers.CharField(source="profile.full_name", read_only=True)
+    photo_url = serializers.CharField(source="profile.photo_url", read_only=True)
 
     class Meta:
         model = User
-        fields = ["username", "full_name", "role", "github_username", "date_joined"]
+        fields = ["username", "full_name", "role", "github_username", "photo_url", "date_joined"]
 
 
 class RegisterSerializer(serializers.ModelSerializer):

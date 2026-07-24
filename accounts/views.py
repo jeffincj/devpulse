@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -17,10 +18,6 @@ class RegisterView(generics.CreateAPIView):
 
 
 class MeView(generics.RetrieveUpdateAPIView):
-    """
-    GET /api/auth/me/   -> current user's full profile
-    PATCH /api/auth/me/ -> update profile fields: github_username, role, full_name, date_of_birth
-    """
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -65,12 +62,41 @@ class MeView(generics.RetrieveUpdateAPIView):
         if "date_of_birth" in profile_data:
             request.user.profile.date_of_birth = profile_data["date_of_birth"] or None
 
+        if "gender" in profile_data:
+            request.user.profile.gender = profile_data["gender"]
+
         request.user.profile.save()
         return self.retrieve(request, *args, **kwargs)
 
 
+class UploadPhotoView(APIView):
+    """POST /api/auth/upload-photo/  multipart form with field 'photo'"""
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        photo = request.FILES.get("photo")
+        if not photo:
+            return Response({"detail": "No photo file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        import cloudinary.uploader
+        try:
+            result = cloudinary.uploader.upload(
+                photo,
+                folder="devpulse_profile_photos",
+                public_id=f"user_{request.user.id}",
+                overwrite=True,
+                resource_type="image",
+            )
+        except Exception as e:
+            return Response({"detail": f"Upload failed: {e}"}, status=status.HTTP_502_BAD_GATEWAY)
+
+        request.user.profile.photo_url = result["secure_url"]
+        request.user.profile.save()
+        return Response({"photo_url": result["secure_url"]})
+
+
 class ChangePasswordView(APIView):
-    """POST /api/auth/change-password/  body: {old_password, new_password}"""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -91,7 +117,6 @@ class ChangePasswordView(APIView):
 
 
 class PublicProfileByGithubView(APIView):
-    """GET /api/users/by-github/<github_username>/ -> find a registered app user by their linked GitHub username."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, github_username):
