@@ -296,7 +296,8 @@ async function loadLeaderboard(period) {
   try {
     const data = await apiGet(`/api/metrics/leaderboard/?team_id=${teamId}&period=${period}`);
     if (!data.leaderboard.length) {
-      document.getElementById('leaderboardResult').innerHTML = "<div class='result'>No activity found for this period.</div>";
+      document.getElementById('leaderboardResult').innerHTML =
+        "<div class='result'>No activity in this period. This usually means the team has been quiet lately — check Smart Alerts above, or try 'All Time' to see historical contributors.</div>";
       return;
     }
     const medals = ['🥇', '🥈', '🥉'];
