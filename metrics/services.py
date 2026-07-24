@@ -206,7 +206,7 @@ def my_stats(user, days=3650):
 def team_flags(team, days=30):
     """
     Auto-generated, supportive check-in prompts for a manager —
-    framed as coaching nudges, not punitive callouts.
+    framed as coaching nudges, not punitive callouts. Capped for readability.
     """
     since = timezone.now() - timedelta(days=days)
     flags = []
@@ -267,13 +267,24 @@ def team_flags(team, days=30):
                 })
 
     flags.sort(key=lambda f: 0 if f["severity"] == "high" else 1)
-    return {"team": team.name, "flag_count": len(flags), "flags": flags}
+
+    # Cap the display to the 8 most urgent, but keep the true total count
+    total_count = len(flags)
+    capped_flags = flags[:8]
+
+    return {
+        "team": team.name,
+        "flag_count": total_count,
+        "flags": capped_flags,
+        "showing_capped": total_count > len(capped_flags),
+    }
 
 
 def performance_leaderboard(team, days=30, period_label="This Month"):
     """
     Automatically ranks every contributor on the team by a composite score,
     so the manager never has to manually compare people one at a time.
+    Bot accounts (usernames ending in [bot]) are excluded from ranking.
     """
     since = timezone.now() - timedelta(days=days)
     repos = team.repositories.all()
@@ -282,10 +293,15 @@ def performance_leaderboard(team, days=30, period_label="This Month"):
     merged_pr_counts = {}
     active_weeks = {}
 
+    def is_bot(username):
+        return username and username.lower().endswith("[bot]")
+
     for repo in repos:
         commits = Commit.objects.filter(repository=repo, authored_at__gte=since)
         for c in commits:
             author = c.author_username or "unknown"
+            if is_bot(author):
+                continue
             commit_counts[author] = commit_counts.get(author, 0) + 1
             week_key = c.authored_at.isocalendar()[:2]
             active_weeks.setdefault(author, set()).add(week_key)
@@ -293,6 +309,8 @@ def performance_leaderboard(team, days=30, period_label="This Month"):
         merged_prs = PullRequest.objects.filter(repository=repo, state="merged", merged_at__gte=since)
         for pr in merged_prs:
             author = pr.author_username or "unknown"
+            if is_bot(author):
+                continue
             merged_pr_counts[author] = merged_pr_counts.get(author, 0) + 1
 
     all_authors = set(commit_counts) | set(merged_pr_counts)

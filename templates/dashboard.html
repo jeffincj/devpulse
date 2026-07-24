@@ -274,7 +274,9 @@ async function loadFlags() {
       showResult('flagsResult', "✅ No issues found — everything looks healthy.");
       return;
     }
-    let text = `${data.flag_count} thing(s) worth a look:\n\n`;
+    let text = `${data.flag_count} thing(s) worth a look`;
+    if (data.showing_capped) text += ` (showing the ${data.flags.length} most urgent)`;
+    text += `:\n\n`;
     data.flags.forEach(f => {
       const icon = f.severity === 'high' ? '🔴' : '🟡';
       text += `${icon} ${f.message}\n\n`;
