@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     SprintVelocityView, PRTurnaroundView, CodeChurnView, ContributorActivityView,
     CompareContributorsView, CommitTimelineView, MyStatsView, TeamFlagsView,
+    PerformanceLeaderboardView,
 )
 
 urlpatterns = [
@@ -14,4 +15,5 @@ urlpatterns = [
     path("timeline/", CommitTimelineView.as_view(), name="metric-timeline"),
     path("my-stats/", MyStatsView.as_view(), name="metric-my-stats"),
     path("flags/", TeamFlagsView.as_view(), name="metric-flags"),
+    path("leaderboard/", PerformanceLeaderboardView.as_view(), name="metric-leaderboard"),
 ]

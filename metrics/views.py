@@ -33,14 +33,12 @@ class SprintVelocityView(APIView):
         end_date = request.query_params.get("end_date")
         if not (team_id and start_date and end_date):
             raise ValidationError("team_id, start_date and end_date are required query params.")
-
         team = _get_team_or_404(team_id)
         try:
             start_date = date.fromisoformat(start_date)
             end_date = date.fromisoformat(end_date)
         except ValueError:
             raise ValidationError("start_date/end_date must be in YYYY-MM-DD format.")
-
         return Response(services.sprint_velocity(team, start_date, end_date))
 
 
@@ -115,7 +113,6 @@ class MyStatsView(APIView):
 
 
 class TeamFlagsView(APIView):
-    """GET /api/metrics/flags/?team_id=1 -> auto-generated warnings for a manager."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -124,3 +121,18 @@ class TeamFlagsView(APIView):
             raise ValidationError("team_id is a required query param.")
         team = _get_team_or_404(team_id)
         return Response(services.team_flags(team))
+
+
+class PerformanceLeaderboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        team_id = request.query_params.get("team_id")
+        if not team_id:
+            raise ValidationError("team_id is a required query param.")
+        period = request.query_params.get("period", "month")
+        days_map = {"week": 7, "month": 30, "all": 3650}
+        labels = {"week": "This Week", "month": "This Month", "all": "All Time"}
+        days = days_map.get(period, 30)
+        team = _get_team_or_404(team_id)
+        return Response(services.performance_leaderboard(team, days=days, period_label=labels.get(period, "This Month")))

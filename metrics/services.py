@@ -130,7 +130,6 @@ def compare_contributors(team, usernames, days=3650):
 
 
 def commit_timeline(repository, days=180):
-    """Weekly commit counts, to spot steady work vs. last-minute rushes."""
     since = timezone.now() - timedelta(days=days)
     weekly = (
         Commit.objects.filter(repository=repository, authored_at__gte=since)
@@ -150,7 +149,6 @@ def commit_timeline(repository, days=180):
 
 
 def my_stats(user, days=3650):
-    """A developer's personal activity across every team they belong to, broken down per repo."""
     from teams.models import Team
     from github_integration.models import Repository
 
@@ -207,15 +205,13 @@ def my_stats(user, days=3650):
 
 def team_flags(team, days=30):
     """
-    Auto-generated warnings for a manager — the whole point of this function
-    is to do the "what needs my attention" thinking, not just show raw numbers.
+    Auto-generated, supportive check-in prompts for a manager —
+    framed as coaching nudges, not punitive callouts.
     """
     since = timezone.now() - timedelta(days=days)
     flags = []
-
     repos = team.repositories.all()
 
-    # Flag 1: PRs open for more than 3 days with zero review
     for repo in repos:
         stale_prs = PullRequest.objects.filter(
             repository=repo, state="open", first_review_at__isnull=True,
@@ -226,10 +222,9 @@ def team_flags(team, days=30):
             flags.append({
                 "severity": "high" if age_days >= 7 else "medium",
                 "type": "stale_pr",
-                "message": f"PR #{pr.number} \"{pr.title}\" in {repo.full_name} has had no review for {age_days} days.",
+                "message": f"PR #{pr.number} \"{pr.title}\" in {repo.full_name} could use a review — it's been waiting {age_days} days.",
             })
 
-    # Flag 2: contributors who were active before, but have gone quiet recently
     two_weeks_ago = timezone.now() - timedelta(days=14)
     four_weeks_ago = timezone.now() - timedelta(days=28)
     for repo in repos:
@@ -246,10 +241,9 @@ def team_flags(team, days=30):
             flags.append({
                 "severity": "medium",
                 "type": "inactive_contributor",
-                "message": f"{author} was active on {repo.full_name} in the prior 2 weeks, but has had no commits in the last 2 weeks.",
+                "message": f"{author} was active on {repo.full_name} recently but has gone quiet the last 2 weeks — might be worth a quick check-in, they could be blocked on something.",
             })
 
-    # Flag 3: review turnaround creeping up
     for repo in repos:
         recent = average_pr_turnaround(repo, days=14)
         older = average_pr_turnaround(repo, days=30)
@@ -258,10 +252,9 @@ def team_flags(team, days=30):
                 flags.append({
                     "severity": "medium",
                     "type": "slow_reviews",
-                    "message": f"Review turnaround on {repo.full_name} has slowed to {recent['average_turnaround_hours']}h (was {older['average_turnaround_hours']}h) — reviews are taking longer lately.",
+                    "message": f"Reviews on {repo.full_name} are taking a bit longer lately ({recent['average_turnaround_hours']}h vs {older['average_turnaround_hours']}h before) — might be worth checking if reviewers need support.",
                 })
 
-    # Flag 4: nobody has merged anything in over a week
     for repo in repos:
         last_merge = PullRequest.objects.filter(repository=repo, state="merged").order_by("-merged_at").first()
         if last_merge and last_merge.merged_at:
@@ -270,13 +263,52 @@ def team_flags(team, days=30):
                 flags.append({
                     "severity": "high" if days_since >= 14 else "medium",
                     "type": "no_recent_merges",
-                    "message": f"No pull requests have been merged into {repo.full_name} in {days_since} days.",
+                    "message": f"It's been {days_since} days since the last merge on {repo.full_name} — worth checking if the team's blocked on something.",
                 })
 
     flags.sort(key=lambda f: 0 if f["severity"] == "high" else 1)
+    return {"team": team.name, "flag_count": len(flags), "flags": flags}
 
-    return {
-        "team": team.name,
-        "flag_count": len(flags),
-        "flags": flags,
-    }
+
+def performance_leaderboard(team, days=30, period_label="This Month"):
+    """
+    Automatically ranks every contributor on the team by a composite score,
+    so the manager never has to manually compare people one at a time.
+    """
+    since = timezone.now() - timedelta(days=days)
+    repos = team.repositories.all()
+
+    commit_counts = {}
+    merged_pr_counts = {}
+    active_weeks = {}
+
+    for repo in repos:
+        commits = Commit.objects.filter(repository=repo, authored_at__gte=since)
+        for c in commits:
+            author = c.author_username or "unknown"
+            commit_counts[author] = commit_counts.get(author, 0) + 1
+            week_key = c.authored_at.isocalendar()[:2]
+            active_weeks.setdefault(author, set()).add(week_key)
+
+        merged_prs = PullRequest.objects.filter(repository=repo, state="merged", merged_at__gte=since)
+        for pr in merged_prs:
+            author = pr.author_username or "unknown"
+            merged_pr_counts[author] = merged_pr_counts.get(author, 0) + 1
+
+    all_authors = set(commit_counts) | set(merged_pr_counts)
+    leaderboard = []
+    for author in all_authors:
+        commits = commit_counts.get(author, 0)
+        merged = merged_pr_counts.get(author, 0)
+        weeks_active = len(active_weeks.get(author, set()))
+        score = (commits * 1) + (merged * 5) + (weeks_active * 3)
+        leaderboard.append({
+            "author": author, "commits": commits, "merged_prs": merged,
+            "active_weeks": weeks_active, "score": score,
+        })
+
+    leaderboard.sort(key=lambda x: -x["score"])
+    for i, entry in enumerate(leaderboard, start=1):
+        entry["rank"] = i
+
+    return {"team": team.name, "period_label": period_label, "period_days": days, "leaderboard": leaderboard}

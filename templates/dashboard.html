@@ -22,6 +22,18 @@
   .highlight { border: 2px solid #2980b9; }
   .warning { background:#fff8e1; border-left:4px solid #f9a825; }
   .req-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+  .lb-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+  .lb-toggle button { margin: 0; background: #ecf0f1; color: #2c3e50; }
+  .lb-toggle button.active { background: #2980b9; color: white; }
+  .lb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 10px; }
+  .lb-card { background: #f8f9fa; border-radius: 10px; padding: 16px; border-left: 5px solid #bbb; }
+  .lb-card.rank-1 { border-left-color: #f1c40f; background: #fffbe6; }
+  .lb-card.rank-2 { border-left-color: #bdc3c7; background: #f4f5f6; }
+  .lb-card.rank-3 { border-left-color: #cd853f; background: #fdf3e8; }
+  .lb-rank { font-size: 22px; font-weight: bold; color: #2980b9; }
+  .lb-name { font-size: 16px; font-weight: bold; margin: 4px 0; }
+  .lb-stat { font-size: 13px; color: #555; margin: 2px 0; }
+  .lb-score { font-size: 13px; color: #27ae60; font-weight: bold; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -67,9 +79,20 @@
 <div id="managerControls">
 
   <div class="card" style="border: 2px solid #e74c3c;">
-    <h3>🚩 Smart Alerts — what needs your attention</h3>
+    <h3>🚩 Smart Alerts</h3>
+    <p class="muted" style="margin-top:-6px;">Not a scorecard — just things worth a quick check-in with your team.</p>
     <button onclick="loadFlags()">Check for issues</button>
     <div id="flagsResult"></div>
+  </div>
+
+  <div class="card highlight">
+    <h3>🏆 Team Performance Leaderboard</h3>
+    <div class="lb-toggle">
+      <button id="lbWeek" onclick="loadLeaderboard('week')">Weekly</button>
+      <button id="lbMonth" onclick="loadLeaderboard('month')">Monthly</button>
+      <button id="lbAll" onclick="loadLeaderboard('all')">All Time</button>
+    </div>
+    <div id="leaderboardResult"></div>
   </div>
 
   <div class="card">
@@ -222,7 +245,6 @@ async function apiDelete(url) {
   }
 }
 
-/* ---------- ROLE CHECK ---------- */
 async function checkRoleAndInit() {
   try {
     const me = await apiGet('/api/auth/me/');
@@ -238,11 +260,11 @@ async function checkRoleAndInit() {
       await loadTeams();
       await loadPendingRequests();
       await loadFlags();
+      await loadLeaderboard('month');
     }
   } catch (e) { console.error(e); }
 }
 
-/* ---------- MANAGER: SMART ALERTS ---------- */
 async function loadFlags() {
   const teamId = document.getElementById('teamSelect').value;
   if (!teamId) return showResult('flagsResult', 'Select a team first.', true);
@@ -252,7 +274,7 @@ async function loadFlags() {
       showResult('flagsResult', "✅ No issues found — everything looks healthy.");
       return;
     }
-    let text = `${data.flag_count} issue(s) found:\n\n`;
+    let text = `${data.flag_count} thing(s) worth a look:\n\n`;
     data.flags.forEach(f => {
       const icon = f.severity === 'high' ? '🔴' : '🟡';
       text += `${icon} ${f.message}\n\n`;
@@ -261,7 +283,42 @@ async function loadFlags() {
   } catch (e) { showResult('flagsResult', e.message, true); }
 }
 
-/* ---------- DEVELOPER: JOIN A TEAM ---------- */
+async function loadLeaderboard(period) {
+  period = period || 'month';
+  ['lbWeek', 'lbMonth', 'lbAll'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const btnId = period === 'week' ? 'lbWeek' : period === 'all' ? 'lbAll' : 'lbMonth';
+  document.getElementById(btnId).classList.add('active');
+
+  const teamId = document.getElementById('teamSelect').value;
+  if (!teamId) { document.getElementById('leaderboardResult').innerHTML = "<div class='result error'>Select a team first.</div>"; return; }
+  try {
+    const data = await apiGet(`/api/metrics/leaderboard/?team_id=${teamId}&period=${period}`);
+    if (!data.leaderboard.length) {
+      document.getElementById('leaderboardResult').innerHTML = "<div class='result'>No activity found for this period.</div>";
+      return;
+    }
+    const medals = ['🥇', '🥈', '🥉'];
+    let html = `<p class="muted">${data.period_label} — ranked by commits, merged PRs, and consistency</p><div class="lb-grid">`;
+    data.leaderboard.forEach(p => {
+      const rankClass = p.rank <= 3 ? `rank-${p.rank}` : '';
+      const medal = p.rank <= 3 ? medals[p.rank - 1] : `#${p.rank}`;
+      html += `
+        <div class="lb-card ${rankClass}">
+          <div class="lb-rank">${medal}</div>
+          <div class="lb-name">${p.author}</div>
+          <div class="lb-stat">📝 ${p.commits} commits</div>
+          <div class="lb-stat">✅ ${p.merged_prs} merged PRs</div>
+          <div class="lb-stat">📅 Active ${p.active_weeks} week(s)</div>
+          <div class="lb-score">Score: ${p.score}</div>
+        </div>`;
+    });
+    html += `</div>`;
+    document.getElementById('leaderboardResult').innerHTML = html;
+  } catch (e) {
+    document.getElementById('leaderboardResult').innerHTML = "<div class='result error'>" + e.message + "</div>";
+  }
+}
+
 async function loadPublicTeams() {
   try {
     const data = await apiGet('/api/public-teams/');
@@ -295,7 +352,6 @@ async function loadMyRequests() {
   } catch (e) { showResult('myRequestsResult', e.message, true); }
 }
 
-/* ---------- MANAGER: PENDING JOIN REQUESTS ---------- */
 async function loadPendingRequests() {
   try {
     const data = await apiGet('/api/join-requests/pending/');
@@ -321,7 +377,6 @@ async function decideRequest(requestId, decision) {
   } catch (e) { showResult('pendingRequestsResult', 'Could not process request: ' + e.message, true); }
 }
 
-/* ---------- DEVELOPER: MY STATS (per-repository breakdown) ---------- */
 async function loadMyStats() {
   try {
     const data = await apiGet('/api/metrics/my-stats/?days=3650');
@@ -361,7 +416,6 @@ async function saveGithubUsername() {
   } catch (e) { showResult('githubUsernameResult', 'Could not save: ' + e, true); }
 }
 
-/* ---------- MANAGER: TEAMS ---------- */
 async function loadTeams(selectId) {
   const data = await apiGet('/api/teams/');
   const select = document.getElementById('teamSelect');
@@ -392,6 +446,7 @@ async function onTeamChange() {
   if (teamId) {
     await loadRepos(teamId);
     await loadFlags();
+    await loadLeaderboard('month');
   }
 }
 
@@ -416,7 +471,6 @@ async function deleteTeam() {
   } catch (e) { alert('Could not delete team: ' + e.message); }
 }
 
-/* ---------- MANAGER: MEMBERS ---------- */
 async function loadMembers() {
   const teamId = document.getElementById('teamSelect').value;
   if (!teamId) return showResult('membersResult', 'Select a team first.', true);
@@ -459,7 +513,6 @@ async function removeMember() {
   } catch (e) { showResult('membersResult', 'Could not remove member: ' + e.message, true); }
 }
 
-/* ---------- MANAGER: REPOSITORIES ---------- */
 async function addRepo() {
   const teamId = document.getElementById('teamSelect').value;
   const fullName = document.getElementById('newRepoName').value.trim();
@@ -526,11 +579,10 @@ async function showRepoDetails() {
 
 async function showFullReport() {
   showResult('fullReportResult', 'Building full report...');
-  await Promise.all([codeChurn(), contributorActivity(), prTurnaround(), pendingReview(), showRepoDetails(), loadFlags()]);
+  await Promise.all([codeChurn(), contributorActivity(), prTurnaround(), pendingReview(), showRepoDetails(), loadFlags(), loadLeaderboard('month')]);
   showResult('fullReportResult', '✅ Full report ready — scroll down, every section below is now updated.');
 }
 
-/* ---------- MANAGER: METRICS ---------- */
 async function commitTimeline() {
   const repoId = document.getElementById('repoSelect').value;
   if (!repoId) return showResult('timelineResult', 'Select a repository first.', true);
