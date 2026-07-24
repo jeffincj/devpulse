@@ -75,6 +75,9 @@ def code_churn(repository, days=30):
 def contributor_activity(team, days=30):
     since = timezone.now() - timedelta(days=days)
 
+    def is_bot(username):
+        return username and username.lower().endswith("[bot]")
+
     commit_counts = (
         Commit.objects.filter(repository__team=team, authored_at__gte=since)
         .values("author_username")
@@ -89,10 +92,14 @@ def contributor_activity(team, days=30):
     activity = {}
     for row in commit_counts:
         author = row["author_username"] or "unknown"
+        if is_bot(author):
+            continue
         activity.setdefault(author, {"author": author, "commit_count": 0, "merged_pr_count": 0})
         activity[author]["commit_count"] = row["commit_count"]
     for row in pr_counts:
         author = row["author_username"] or "unknown"
+        if is_bot(author):
+            continue
         activity.setdefault(author, {"author": author, "commit_count": 0, "merged_pr_count": 0})
         activity[author]["merged_pr_count"] = row["merged_pr_count"]
 
@@ -204,10 +211,6 @@ def my_stats(user, days=3650):
 
 
 def team_flags(team, days=30):
-    """
-    Auto-generated, supportive check-in prompts for a manager —
-    framed as coaching nudges, not punitive callouts. Capped for readability.
-    """
     since = timezone.now() - timedelta(days=days)
     flags = []
     repos = team.repositories.all()
@@ -268,7 +271,6 @@ def team_flags(team, days=30):
 
     flags.sort(key=lambda f: 0 if f["severity"] == "high" else 1)
 
-    # Cap the display to the 8 most urgent, but keep the true total count
     total_count = len(flags)
     capped_flags = flags[:8]
 
@@ -281,11 +283,6 @@ def team_flags(team, days=30):
 
 
 def performance_leaderboard(team, days=30, period_label="This Month"):
-    """
-    Automatically ranks every contributor on the team by a composite score,
-    so the manager never has to manually compare people one at a time.
-    Bot accounts (usernames ending in [bot]) are excluded from ranking.
-    """
     since = timezone.now() - timedelta(days=days)
     repos = team.repositories.all()
 
