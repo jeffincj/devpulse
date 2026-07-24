@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "teams",
     "github_integration",
     "metrics",
+    "feedback",
 ]
 
 MIDDLEWARE = [

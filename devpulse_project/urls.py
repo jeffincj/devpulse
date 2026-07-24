@@ -8,11 +8,13 @@ urlpatterns = [
 
     path("login/", TemplateView.as_view(template_name="login.html"), name="login"),
     path("dashboard/", TemplateView.as_view(template_name="dashboard.html"), name="dashboard"),
+    path("profile/", TemplateView.as_view(template_name="profile.html"), name="profile"),
 
     path("api/auth/", include("accounts.urls")),
     path("api/", include("teams.urls")),
     path("api/", include("github_integration.urls")),
     path("api/metrics/", include("metrics.urls")),
+    path("api/feedback/", include("feedback.urls")),
 
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),

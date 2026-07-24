@@ -5,9 +5,11 @@ from .models import Profile
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    age = serializers.ReadOnlyField()
+
     class Meta:
         model = Profile
-        fields = ["role", "github_username"]
+        fields = ["role", "github_username", "full_name", "date_of_birth", "age"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,6 +18,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "username", "email", "first_name", "last_name", "profile"]
+
+
+class PublicProfileSerializer(serializers.ModelSerializer):
+    """Safe, limited info shown when one user views another's profile."""
+    role = serializers.CharField(source="profile.role", read_only=True)
+    github_username = serializers.CharField(source="profile.github_username", read_only=True)
+    full_name = serializers.CharField(source="profile.full_name", read_only=True)
+
+    class Meta:
+        model = User
+        fields = ["username", "full_name", "role", "github_username", "date_joined"]
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -27,6 +40,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ["username", "email", "password", "role", "github_username"]
 
+    def validate_email(self, value):
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("An account with this email already exists.")
+        return value
+
     def create(self, validated_data):
         role = validated_data.pop("role", Profile.Role.DEVELOPER)
         github_username = validated_data.pop("github_username", "")
@@ -36,7 +54,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
 
-        # profile already auto-created by the signal; update it with role/github info
         user.profile.role = role
         user.profile.github_username = github_username
         user.profile.save()
