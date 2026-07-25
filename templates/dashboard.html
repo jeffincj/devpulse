@@ -25,12 +25,6 @@
     border-bottom: 1px solid #1e293b;
   }
   .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-dot {
-    width: 34px; height: 34px; border-radius: 9px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 17px;
-  }
   h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 0; letter-spacing: -0.3px; }
 
   .nav-link {
@@ -150,7 +144,21 @@
 
 <div class="topbar">
   <div class="brand">
-    <div class="brand-dot">📊</div>
+    <svg width="34" height="34" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="dashBadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3498db"/>
+          <stop offset="100%" stop-color="#1c5980"/>
+        </linearGradient>
+      </defs>
+      <rect x="8" y="8" width="144" height="144" rx="32" fill="url(#dashBadgeGrad)"/>
+      <rect x="34" y="96" width="16" height="38" rx="3" fill="#ffffff" opacity="0.55"/>
+      <rect x="58" y="80" width="16" height="54" rx="3" fill="#ffffff" opacity="0.55"/>
+      <rect x="106" y="64" width="16" height="70" rx="3" fill="#ffffff" opacity="0.55"/>
+      <path d="M 26 108 L 52 108 L 62 84 L 74 128 L 86 96 L 98 108 L 134 108"
+            fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="134" cy="108" r="6" fill="#ffffff"/>
+    </svg>
     <h1>DevPulse</h1>
   </div>
   <div style="display:flex; align-items:center; gap:6px;">

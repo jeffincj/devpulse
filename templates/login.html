@@ -15,7 +15,6 @@
     background: #0b0f19;
   }
 
-  /* Left panel — brand side */
   .brand-panel {
     flex: 1;
     background: #0b0f19;
@@ -28,7 +27,6 @@
     overflow: hidden;
   }
 
-  /* Animated drifting glow blobs, very subtle */
   .glow {
     position: absolute;
     border-radius: 50%;
@@ -69,14 +67,14 @@
 
   .brand-content { position: relative; z-index: 1; }
 
-  .brand-logo { font-size: 15px; letter-spacing: 3px; color: #60a5fa; font-weight: 600; text-transform: uppercase; margin-bottom: 24px; }
+  .brand-logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .brand-logo-text { font-size: 15px; letter-spacing: 3px; color: #60a5fa; font-weight: 600; text-transform: uppercase; }
   .brand-title { font-size: 42px; font-weight: 700; line-height: 1.2; margin: 0 0 20px 0; }
   .brand-sub { font-size: 16px; color: #94a3b8; max-width: 380px; line-height: 1.6; }
   .brand-stats { display: flex; gap: 36px; margin-top: 48px; }
   .brand-stat-num { font-size: 26px; font-weight: 700; color: #60a5fa; }
   .brand-stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
 
-  /* Simple abstract "dashboard preview" graphic filling the empty space */
   .mock-card {
     margin-top: 56px;
     max-width: 380px;
@@ -88,13 +86,11 @@
   }
   .mock-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .mock-row:last-child { margin-bottom: 0; }
-  .mock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .mock-bar { height: 8px; border-radius: 4px; background: #1e293b; overflow: hidden; flex: 1; position: relative; }
   .mock-bar-fill { height: 100%; border-radius: 4px; animation: fillBar 2.4s ease-out forwards; }
   @keyframes fillBar { from { width: 0%; } }
   .mock-label { font-size: 11.5px; color: #64748b; width: 90px; flex-shrink: 0; }
 
-  /* Fade-in entrance for both panels */
   .fade-in { opacity: 0; animation: fadeUp 0.6s ease forwards; }
   .fade-in.delay-1 { animation-delay: 0.08s; }
   .fade-in.delay-2 { animation-delay: 0.16s; }
@@ -104,7 +100,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Right panel — form side */
   .form-panel {
     width: 460px;
     background: #0f1522;
@@ -155,7 +150,24 @@
   <div class="glow glow-3"></div>
 
   <div class="brand-content">
-    <div class="brand-logo fade-in">DEVPULSE</div>
+    <div class="brand-logo-row fade-in">
+      <svg width="34" height="34" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="loginBadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#5dade2"/>
+            <stop offset="100%" stop-color="#2980b9"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="8" width="144" height="144" rx="32" fill="url(#loginBadgeGrad)"/>
+        <rect x="34" y="96" width="16" height="38" rx="3" fill="#ffffff" opacity="0.55"/>
+        <rect x="58" y="80" width="16" height="54" rx="3" fill="#ffffff" opacity="0.55"/>
+        <rect x="106" y="64" width="16" height="70" rx="3" fill="#ffffff" opacity="0.55"/>
+        <path d="M 26 108 L 52 108 L 62 84 L 74 128 L 86 96 L 98 108 L 134 108"
+              fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="134" cy="108" r="6" fill="#ffffff"/>
+      </svg>
+      <span class="brand-logo-text">DEVPULSE</span>
+    </div>
     <h1 class="brand-title fade-in delay-1">Engineering visibility,<br>without the guesswork.</h1>
     <p class="brand-sub fade-in delay-1">Real-time GitHub analytics for teams — sprint velocity, review turnaround, code churn, and contributor activity, computed automatically.</p>
 
