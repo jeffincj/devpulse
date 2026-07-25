@@ -17,27 +17,38 @@
     position: relative;
   }
 
-  /* ---------- All terminal panels now on the right side, stacked ---------- */
+  /* ---------- Floating terminal panels that drift horizontally across the whole viewport, behind the content ---------- */
   .term-panel {
     position: fixed;
-    right: -75px;
-    background: rgba(10, 14, 24, 0.65);
-    border: 1px solid rgba(99,102,241,0.22);
+    background: rgba(10, 14, 24, 0.55);
+    border: 1px solid rgba(99,102,241,0.2);
     border-radius: 11px;
     overflow: hidden;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
     pointer-events: none;
     z-index: 0;
-    box-shadow: 0 16px 50px rgba(0,0,0,0.35);
-    width: 210px;
-    height: 175px;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.3);
+    width: 200px;
+    height: 165px;
   }
-  .term-panel.pos-1 { top: 2%; }
-  .term-panel.pos-2 { top: 18%; opacity: 0.95; }
-  .term-panel.pos-3 { top: 34%; opacity: 0.9; }
-  .term-panel.pos-4 { top: 50%; opacity: 0.85; }
-  .term-panel.pos-5 { top: 66%; opacity: 0.78; }
-  .term-panel.pos-6 { top: 82%; opacity: 0.7; }
+  .drift-right { animation: driftRight linear infinite; }
+  .drift-left { animation: driftLeft linear infinite; }
+
+  @keyframes driftRight {
+    0% { left: -230px; }
+    100% { left: 100vw; }
+  }
+  @keyframes driftLeft {
+    0% { right: -230px; }
+    100% { right: 100vw; }
+  }
+
+  .term-panel.row-1 { top: 4%; animation-duration: 38s; }
+  .term-panel.row-2 { top: 22%; animation-duration: 46s; }
+  .term-panel.row-3 { top: 40%; animation-duration: 33s; }
+  .term-panel.row-4 { top: 58%; animation-duration: 50s; }
+  .term-panel.row-5 { top: 76%; animation-duration: 40s; }
+  .term-panel.row-6 { top: 92%; animation-duration: 44s; }
 
   .term-titlebar {
     display: flex; align-items: center; gap: 5px;
@@ -49,10 +60,7 @@
   .term-titlebar span { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #64748b; margin-left: 5px; }
 
   .term-body { padding: 8px 11px; overflow: hidden; height: calc(100% - 28px); }
-  .t-speed-1 { animation: scrollUp 13s linear infinite; }
-  .t-speed-2 { animation: scrollUp 18s linear infinite; }
-  .t-speed-3 { animation: scrollUp 9s linear infinite; }
-  .rev { animation-direction: reverse; }
+  .term-scroll { animation: scrollUp 14s linear infinite; }
 
   @keyframes scrollUp {
     from { transform: translateY(0); }
@@ -74,7 +82,7 @@
   .path { color: #94a3b8; }
   .timing { color: #475569; }
 
-  @media (max-width: 1500px) {
+  @media (max-width: 900px) {
     .term-panel { display: none; }
   }
 
@@ -125,6 +133,7 @@
     background: #2563eb; display: flex; align-items: center; justify-content: center;
     font-size: 14px; font-weight: 700; color: white; overflow: hidden;
     cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s;
+    position: relative; z-index: 2;
   }
   .nav-avatar:hover { border-color: #3b82f6; }
 
@@ -246,12 +255,12 @@
 </head>
 <body>
 
-<div class="term-panel pos-1"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>devpulse.svc</span></div><div class="term-body"><div class="t-speed-2" id="tR1"></div></div></div>
-<div class="term-panel pos-2"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>github.api</span></div><div class="term-body"><div class="t-speed-1 rev" id="tR2"></div></div></div>
-<div class="term-panel pos-3"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>feedback.log</span></div><div class="term-body"><div class="t-speed-3 rev" id="tR3"></div></div></div>
-<div class="term-panel pos-4"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>api.log</span></div><div class="term-body"><div class="t-speed-1" id="tL1"></div></div></div>
-<div class="term-panel pos-5"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>sync.log</span></div><div class="term-body"><div class="t-speed-2 rev" id="tL2"></div></div></div>
-<div class="term-panel pos-6"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>metrics.log</span></div><div class="term-body"><div class="t-speed-3" id="tL3"></div></div></div>
+<div class="term-panel row-1 drift-right"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>api.log</span></div><div class="term-body"><div class="term-scroll" id="t1"></div></div></div>
+<div class="term-panel row-2 drift-left"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>github.api</span></div><div class="term-body"><div class="term-scroll" id="t2"></div></div></div>
+<div class="term-panel row-3 drift-right"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>sync.log</span></div><div class="term-body"><div class="term-scroll" id="t3"></div></div></div>
+<div class="term-panel row-4 drift-left"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>devpulse.svc</span></div><div class="term-body"><div class="term-scroll" id="t4"></div></div></div>
+<div class="term-panel row-5 drift-right"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>metrics.log</span></div><div class="term-body"><div class="term-scroll" id="t5"></div></div></div>
+<div class="term-panel row-6 drift-left"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>feedback.log</span></div><div class="term-body"><div class="term-scroll" id="t6"></div></div></div>
 
 <div class="topbar">
   <div class="brand">
@@ -395,7 +404,7 @@
     <div id="timelineResult"></div>
   </div>
 
-  <div class="card" id="churnCard">
+  <div class="card">
     <h3>Code Churn</h3>
     <p class="muted">Lines added/removed.</p>
     <button onclick="codeChurn()">Show Code Churn</button>
@@ -419,7 +428,7 @@
     <div id="compareResult"></div>
   </div>
 
-  <div class="card" id="turnaroundCard">
+  <div class="card">
     <h3>PR Review Turnaround</h3>
     <p class="muted">How fast reviews happen.</p>
     <button onclick="prTurnaround()">Show Turnaround</button>
@@ -459,36 +468,25 @@ function jumpTo(id) {
 }
 
 (function buildTerminalLogs() {
-  const setA = [
-    { m: 'GET', mc: 'm-get', path: '/api/metrics/leaderboard/', status: '200', sc: 'status-ok', ms: '42ms' },
-    { m: 'POST', mc: 'm-post', path: '/api/repositories/9/sync/', status: '200', sc: 'status-ok', ms: '1284ms' },
-    { m: 'GET', mc: 'm-get', path: '/api/metrics/flags/', status: '200', sc: 'status-ok', ms: '38ms' },
-    { m: 'GET', mc: 'm-get', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '12ms' },
-  ];
-  const setB = [
-    { m: 'GET', mc: 'm-get', path: '/repos/fastapi/pulls', status: '200', sc: 'status-ok', ms: '210ms' },
-    { m: 'GET', mc: 'm-get', path: '/repos/fastapi/commits', status: '200', sc: 'status-ok', ms: '188ms' },
-    { m: 'GET', mc: 'm-get', path: '/pulls/3785/reviews', status: '200', sc: 'status-ok', ms: '94ms' },
-  ];
-  const setC = [
-    { m: 'GET', mc: 'm-get', path: '/api/metrics/code-churn/', status: '200', sc: 'status-ok', ms: '31ms' },
-    { m: 'GET', mc: 'm-get', path: '/api/metrics/pr-turnaround/', status: '200', sc: 'status-ok', ms: '27ms' },
-    { m: 'GET', mc: 'm-get', path: '/api/pull-requests/pending-review/', status: '200', sc: 'status-ok', ms: '19ms' },
-  ];
-  const setD = [
-    { m: 'POST', mc: 'm-post', path: '/api/feedback/', status: '201', sc: 'status-created', ms: '55ms' },
-    { m: 'GET', mc: 'm-get', path: '/api/feedback/received/', status: '200', sc: 'status-ok', ms: '22ms' },
-    { m: 'PATCH', mc: 'm-patch', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '29ms' },
-  ];
-  const setE = [
-    { m: 'GET', mc: 'm-get', path: '/api/metrics/timeline/', status: '200', sc: 'status-ok', ms: '47ms' },
-    { m: 'POST', mc: 'm-post', path: '/api/teams/3/add-member/', status: '201', sc: 'status-created', ms: '33ms' },
-    { m: 'GET', mc: 'm-get', path: '/api/metrics/compare/', status: '200', sc: 'status-ok', ms: '52ms' },
-  ];
-  const setF = [
-    { m: 'GET', mc: 'm-get', path: '/users/tiangolo', status: '200', sc: 'status-ok', ms: '76ms' },
-    { m: 'GET', mc: 'm-get', path: '/repos/httpx/pulls', status: '200', sc: 'status-ok', ms: '203ms' },
-    { m: 'GET', mc: 'm-get', path: '/api/repositories/details/', status: '200', sc: 'status-ok', ms: '58ms' },
+  const sets = [
+    [{ m: 'GET', mc: 'm-get', path: '/api/metrics/leaderboard/', status: '200', sc: 'status-ok', ms: '42ms' },
+     { m: 'POST', mc: 'm-post', path: '/api/repositories/9/sync/', status: '200', sc: 'status-ok', ms: '1284ms' },
+     { m: 'GET', mc: 'm-get', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '12ms' }],
+    [{ m: 'GET', mc: 'm-get', path: '/users/tiangolo', status: '200', sc: 'status-ok', ms: '76ms' },
+     { m: 'GET', mc: 'm-get', path: '/repos/httpx/pulls', status: '200', sc: 'status-ok', ms: '203ms' },
+     { m: 'GET', mc: 'm-get', path: '/repos/httpx/commits', status: '200', sc: 'status-ok', ms: '188ms' }],
+    [{ m: 'GET', mc: 'm-get', path: '/repos/fastapi/pulls', status: '200', sc: 'status-ok', ms: '210ms' },
+     { m: 'GET', mc: 'm-get', path: '/pulls/3785/reviews', status: '200', sc: 'status-ok', ms: '94ms' },
+     { m: 'GET', mc: 'm-get', path: '/api/metrics/flags/', status: '200', sc: 'status-ok', ms: '38ms' }],
+    [{ m: 'POST', mc: 'm-post', path: '/api/feedback/', status: '201', sc: 'status-created', ms: '55ms' },
+     { m: 'PATCH', mc: 'm-patch', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '29ms' },
+     { m: 'GET', mc: 'm-get', path: '/api/pull-requests/', status: '200', sc: 'status-ok', ms: '61ms' }],
+    [{ m: 'GET', mc: 'm-get', path: '/api/metrics/code-churn/', status: '200', sc: 'status-ok', ms: '31ms' },
+     { m: 'GET', mc: 'm-get', path: '/api/metrics/pr-turnaround/', status: '200', sc: 'status-ok', ms: '27ms' },
+     { m: 'GET', mc: 'm-get', path: '/api/metrics/timeline/', status: '200', sc: 'status-ok', ms: '47ms' }],
+    [{ m: 'GET', mc: 'm-get', path: '/api/feedback/received/', status: '200', sc: 'status-ok', ms: '22ms' },
+     { m: 'POST', mc: 'm-post', path: '/api/teams/3/add-member/', status: '201', sc: 'status-created', ms: '33ms' },
+     { m: 'GET', mc: 'm-get', path: '/api/metrics/compare/', status: '200', sc: 'status-ok', ms: '52ms' }],
   ];
 
   function unit(logs) {
@@ -499,12 +497,9 @@ function jumpTo(id) {
     return html + html;
   }
 
-  document.getElementById('tR1').innerHTML = unit(setD);
-  document.getElementById('tR2').innerHTML = unit(setE);
-  document.getElementById('tR3').innerHTML = unit(setF);
-  document.getElementById('tL1').innerHTML = unit(setA);
-  document.getElementById('tL2').innerHTML = unit(setB);
-  document.getElementById('tL3').innerHTML = unit(setC);
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('t' + i).innerHTML = unit(sets[i - 1]);
+  }
 })();
 
 function headers(extra) {
