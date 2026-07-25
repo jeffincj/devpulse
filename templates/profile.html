@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>DevPulse — My Profile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
   body {
@@ -14,11 +14,62 @@
     padding: 0 20px 80px;
     background: #05070d;
     color: #e2e8f0;
+    position: relative;
+  }
+
+  .term-panel {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 230px;
+    height: 360px;
+    background: rgba(10, 14, 24, 0.7);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+    z-index: 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .term-panel.left { left: 30px; }
+  .term-panel.right { right: 30px; }
+
+  .term-titlebar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 12px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(99,102,241,0.15);
+  }
+  .term-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .term-titlebar span { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #64748b; margin-left: 6px; }
+
+  .term-body { padding: 10px 12px; overflow: hidden; height: calc(100% - 34px); }
+  .term-track { animation: scrollUp 24s linear infinite; }
+  .term-panel.right .term-track { animation-duration: 30s; animation-direction: reverse; }
+  @keyframes scrollUp {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+
+  .term-line { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 2.1; white-space: nowrap; }
+  .method { font-weight: 600; }
+  .m-get { color: #60a5fa; }
+  .m-post { color: #4ade80; }
+  .m-patch { color: #a78bfa; }
+  .status-ok { color: #4ade80; }
+  .status-created { color: #22d3ee; }
+  .path { color: #94a3b8; }
+  .timing { color: #475569; }
+
+  @media (max-width: 1250px) {
+    .term-panel { display: none; }
   }
 
   .navbar {
     display: flex; justify-content: space-between; align-items: center;
     padding: 18px 0; border-bottom: 1px solid #1e293b; margin-bottom: 24px;
+    position: relative; z-index: 1;
   }
   .brand { display: flex; align-items: center; gap: 12px; }
 
@@ -55,7 +106,7 @@
     font-size: 13px; font-weight: 700; color: white; object-fit: cover; overflow: hidden;
   }
 
-  .card { background: #131a29; border: 1px solid #1e293b; border-radius: 14px; padding: 24px; margin-bottom: 18px; }
+  .card { background: #131a29; border: 1px solid #1e293b; border-radius: 14px; padding: 24px; margin-bottom: 18px; position: relative; z-index: 1; }
   h3 { font-size: 15px; font-weight: 600; color: #f1f5f9; margin: 0 0 4px 0; }
   .muted { color: #64748b; font-size: 12.5px; margin: 6px 0 16px 0; }
 
@@ -91,6 +142,25 @@
 </style>
 </head>
 <body>
+
+<div class="term-panel left">
+  <div class="term-titlebar">
+    <div class="term-dot" style="background:#f87171;"></div>
+    <div class="term-dot" style="background:#fbbf24;"></div>
+    <div class="term-dot" style="background:#4ade80;"></div>
+    <span>api — live requests</span>
+  </div>
+  <div class="term-body"><div class="term-track" id="termLeft"></div></div>
+</div>
+<div class="term-panel right">
+  <div class="term-titlebar">
+    <div class="term-dot" style="background:#f87171;"></div>
+    <div class="term-dot" style="background:#fbbf24;"></div>
+    <div class="term-dot" style="background:#4ade80;"></div>
+    <span>devpulse.services</span>
+  </div>
+  <div class="term-body"><div class="term-track" id="termRight"></div></div>
+</div>
 
 <div class="navbar">
   <div class="brand">
@@ -184,6 +254,34 @@
 <script>
 const token = localStorage.getItem('devpulse_access');
 if (!token) window.location.href = '/login/';
+
+(function buildTerminalLog() {
+  const logs = [
+    { m: 'GET', mc: 'm-get', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '12ms' },
+    { m: 'PATCH', mc: 'm-patch', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '29ms' },
+    { m: 'POST', mc: 'm-post', path: '/api/auth/upload-photo/', status: '200', sc: 'status-ok', ms: '312ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/feedback/received/', status: '200', sc: 'status-ok', ms: '22ms' },
+    { m: 'POST', mc: 'm-post', path: '/api/auth/change-password/', status: '200', sc: 'status-ok', ms: '48ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/metrics/my-stats/', status: '200', sc: 'status-ok', ms: '35ms' },
+    { m: 'POST', mc: 'm-post', path: '/api/feedback/', status: '201', sc: 'status-created', ms: '41ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/join-requests/mine/', status: '200', sc: 'status-ok', ms: '18ms' },
+  ];
+  function buildUnit() {
+    let html = '';
+    logs.forEach(l => {
+      html += `<div class="term-line">
+        <span class="method ${l.mc}">${l.m}</span>
+        <span class="path">${l.path}</span>
+        <span class="${l.sc}">${l.status}</span>
+        <span class="timing">${l.ms}</span>
+      </div>`;
+    });
+    return html;
+  }
+  const unit = buildUnit();
+  document.getElementById('termLeft').innerHTML = unit + unit;
+  document.getElementById('termRight').innerHTML = unit + unit;
+})();
 
 function headers(extra) { return Object.assign({ "Authorization": "Bearer " + token }, extra || {}); }
 function showResult(id, text, isError) {

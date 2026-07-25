@@ -17,53 +17,63 @@
     position: relative;
   }
 
-  /* ---------- Commit stream side decorations (GitHub-themed, wide screens only) ---------- */
-  .commit-stream {
+  /* ---------- Terminal-style side panels: live API request log ---------- */
+  .term-panel {
     position: fixed;
-    top: 0;
-    width: 260px;
-    height: 100vh;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 250px;
+    height: 380px;
+    background: rgba(10, 14, 24, 0.7);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
     pointer-events: none;
     z-index: 0;
-    overflow: hidden;
-    opacity: 0.5;
-    mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   }
-  .commit-stream.left { left: -60px; }
-  .commit-stream.right { right: -60px; }
+  .term-panel.left { left: -70px; }
+  .term-panel.right { right: -70px; }
 
-  .stream-track {
-    position: absolute;
-    width: 100%;
-    animation: scrollDown 26s linear infinite;
+  .term-titlebar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 12px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(99,102,241,0.15);
   }
-  .commit-stream.right .stream-track { animation-duration: 32s; }
-
-  @keyframes scrollDown {
-    from { transform: translateY(-50%); }
-    to { transform: translateY(0%); }
+  .term-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .term-titlebar span {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #64748b; margin-left: 6px;
   }
 
-  .commit-node-row { display: flex; align-items: center; gap: 10px; padding: 22px 0; padding-left: 30px; position: relative; }
-  .commit-node-row::before {
-    content: ''; position: absolute; left: 14px; top: -22px; width: 1.5px; height: calc(100% + 44px);
-    background: linear-gradient(180deg, transparent, #263449 20%, #263449 80%, transparent);
-  }
-  .commit-node {
-    width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; position: relative; z-index: 1;
-    box-shadow: 0 0 10px 2px currentColor;
-    animation: nodePulse 3s ease-in-out infinite;
-  }
-  @keyframes nodePulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-  .commit-msg { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b; white-space: nowrap; }
-  .commit-msg .type { font-weight: 500; }
-  .type-feat { color: #4ade80; }
-  .type-fix { color: #f87171; }
-  .type-chore { color: #94a3b8; }
-  .type-merge { color: #a78bfa; }
+  .term-body { padding: 10px 12px; overflow: hidden; height: calc(100% - 34px); }
+  .term-track { animation: scrollUp 24s linear infinite; }
+  .term-panel.right .term-track { animation-duration: 30s; animation-direction: reverse; }
 
-  @media (max-width: 1300px) {
-    .commit-stream { display: none; }
+  @keyframes scrollUp {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+
+  .term-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    line-height: 2.1;
+    white-space: nowrap;
+  }
+  .method { font-weight: 600; }
+  .m-get { color: #60a5fa; }
+  .m-post { color: #4ade80; }
+  .m-patch { color: #a78bfa; }
+  .m-delete { color: #f87171; }
+  .status-ok { color: #4ade80; }
+  .status-created { color: #22d3ee; }
+  .path { color: #94a3b8; }
+  .timing { color: #475569; }
+
+  @media (max-width: 1400px) {
+    .term-panel { display: none; }
   }
 
   .topbar {
@@ -78,7 +88,6 @@
   }
   .brand { display: flex; align-items: center; gap: 12px; }
 
-  /* New animated logo, matching login page */
   .logo-badge {
     position: relative;
     width: 36px; height: 36px;
@@ -227,11 +236,23 @@
 </head>
 <body>
 
-<div class="commit-stream left">
-  <div class="stream-track" id="streamLeft"></div>
+<div class="term-panel left">
+  <div class="term-titlebar">
+    <div class="term-dot" style="background:#f87171;"></div>
+    <div class="term-dot" style="background:#fbbf24;"></div>
+    <div class="term-dot" style="background:#4ade80;"></div>
+    <span>api — live requests</span>
+  </div>
+  <div class="term-body"><div class="term-track" id="termLeft"></div></div>
 </div>
-<div class="commit-stream right">
-  <div class="stream-track" id="streamRight"></div>
+<div class="term-panel right">
+  <div class="term-titlebar">
+    <div class="term-dot" style="background:#f87171;"></div>
+    <div class="term-dot" style="background:#fbbf24;"></div>
+    <div class="term-dot" style="background:#4ade80;"></div>
+    <span>devpulse.services</span>
+  </div>
+  <div class="term-body"><div class="term-track" id="termRight"></div></div>
 </div>
 
 <div class="topbar">
@@ -432,35 +453,37 @@
 const token = localStorage.getItem('devpulse_access');
 if (!token) window.location.href = '/login/';
 
-/* ---------- Build the animated commit stream side decorations ---------- */
-(function buildCommitStream() {
-  const messages = [
-    { type: 'feat', text: 'add sync retry logic', cls: 'type-feat' },
-    { type: 'fix', text: 'handle empty repo list', cls: 'type-fix' },
-    { type: 'chore', text: 'bump dependencies', cls: 'type-chore' },
-    { type: 'merge', text: "merge branch 'develop'", cls: 'type-merge' },
-    { type: 'feat', text: 'add leaderboard filters', cls: 'type-feat' },
-    { type: 'fix', text: 'correct PR turnaround calc', cls: 'type-fix' },
-    { type: 'chore', text: 'update README', cls: 'type-chore' },
-    { type: 'feat', text: 'add profile photo upload', cls: 'type-feat' },
+/* ---------- Build the animated terminal API request logs ---------- */
+(function buildTerminalLog() {
+  const logs = [
+    { m: 'GET', mc: 'm-get', path: '/api/metrics/leaderboard/', status: '200', sc: 'status-ok', ms: '42ms' },
+    { m: 'POST', mc: 'm-post', path: '/api/repositories/9/sync/', status: '200', sc: 'status-ok', ms: '1284ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/metrics/flags/', status: '200', sc: 'status-ok', ms: '38ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '12ms' },
+    { m: 'POST', mc: 'm-post', path: '/api/feedback/', status: '201', sc: 'status-created', ms: '55ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/pull-requests/', status: '200', sc: 'status-ok', ms: '61ms' },
+    { m: 'PATCH', mc: 'm-patch', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '29ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/metrics/timeline/', status: '200', sc: 'status-ok', ms: '47ms' },
+    { m: 'POST', mc: 'm-post', path: '/api/teams/3/add-member/', status: '201', sc: 'status-created', ms: '33ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/metrics/compare/', status: '200', sc: 'status-ok', ms: '52ms' },
   ];
-  const colors = ['#818cf8', '#22d3ee', '#a78bfa', '#4ade80'];
 
   function buildUnit() {
     let html = '';
-    messages.forEach((m, i) => {
-      const color = colors[i % colors.length];
-      html += `<div class="commit-node-row">
-        <div class="commit-node" style="background:${color}; color:${color};"></div>
-        <span class="commit-msg"><span class="type ${m.cls}">${m.type}:</span> ${m.text}</span>
+    logs.forEach(l => {
+      html += `<div class="term-line">
+        <span class="method ${l.mc}">${l.m}</span>
+        <span class="path">${l.path}</span>
+        <span class="${l.sc}">${l.status}</span>
+        <span class="timing">${l.ms}</span>
       </div>`;
     });
     return html;
   }
 
   const unit = buildUnit();
-  document.getElementById('streamLeft').innerHTML = unit + unit;
-  document.getElementById('streamRight').innerHTML = unit + unit;
+  document.getElementById('termLeft').innerHTML = unit + unit;
+  document.getElementById('termRight').innerHTML = unit + unit;
 })();
 
 function headers(extra) {
