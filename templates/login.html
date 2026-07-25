@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>DevPulse — Sign in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <style>
   * { box-sizing: border-box; }
@@ -13,12 +13,13 @@
     margin: 0;
     min-height: 100vh;
     display: flex;
-    background: #0b0f19;
+    background: #05070d;
+    overflow: hidden;
   }
 
   .brand-panel {
     flex: 1;
-    background: #0b0f19;
+    background: #05070d;
     color: white;
     display: flex;
     flex-direction: column;
@@ -28,109 +29,160 @@
     overflow: hidden;
   }
 
-  #three-canvas {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 0;
-    opacity: 0.85;
-  }
+  #three-canvas { position: absolute; inset: 0; z-index: 0; }
 
-  .glow {
+  /* Cursor-following spotlight */
+  #spotlight {
     position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    opacity: 0.3;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .glow-1 {
     width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(59,130,246,0.5) 0%, transparent 70%);
-    top: -150px; left: -100px;
-    animation: drift1 18s ease-in-out infinite;
-  }
-  .glow-2 {
-    width: 380px; height: 380px;
-    background: radial-gradient(circle, rgba(96,165,250,0.35) 0%, transparent 70%);
-    bottom: -120px; left: 20%;
-    animation: drift2 22s ease-in-out infinite;
-  }
-  @keyframes drift1 {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(40px, 30px); }
-  }
-  @keyframes drift2 {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(-30px, -25px); }
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s;
+    filter: blur(10px);
   }
 
-  .brand-content { position: relative; z-index: 1; }
+  .brand-content { position: relative; z-index: 2; }
 
-  .brand-logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-  .brand-logo-text { font-size: 15px; letter-spacing: 3px; color: #60a5fa; font-weight: 600; text-transform: uppercase; }
-  .brand-title { font-size: 42px; font-weight: 700; line-height: 1.2; margin: 0 0 20px 0; }
-  .brand-sub { font-size: 16px; color: #94a3b8; max-width: 380px; line-height: 1.6; }
-  .brand-stats { display: flex; gap: 36px; margin-top: 48px; }
-  .brand-stat-num { font-size: 26px; font-weight: 700; color: #60a5fa; }
-  .brand-stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
+  /* New logo: animated conic gradient ring + pulsing core */
+  .logo-badge {
+    position: relative;
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: conic-gradient(from 0deg, #6366f1, #22d3ee, #a855f7, #6366f1);
+    animation: spinGrad 4s linear infinite;
+  }
+  @keyframes spinGrad { to { --a: 360deg; transform: rotate(360deg); } }
+  .logo-core {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    background: #05070d;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #818cf8, #22d3ee);
+    animation: pulseDot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,0.6); }
+    50% { transform: scale(1.35); box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+  }
+
+  .brand-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+  .brand-logo-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;
+    background: linear-gradient(90deg, #818cf8, #22d3ee);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .brand-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 46px; font-weight: 700; line-height: 1.15; margin: 0 0 20px 0;
+    background: linear-gradient(100deg, #ffffff 30%, #a5b4fc 50%, #22d3ee 65%, #ffffff 90%);
+    background-size: 250% auto;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shine 6s linear infinite;
+  }
+  @keyframes shine {
+    to { background-position: -250% center; }
+  }
+
+  .brand-sub { font-size: 16px; color: #94a3b8; max-width: 400px; line-height: 1.6; }
+
+  .brand-stats { display: flex; gap: 14px; margin-top: 42px; }
+  .stat-chip {
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.25);
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s, background 0.2s;
+  }
+  .stat-chip:hover { transform: translateY(-3px); background: rgba(99,102,241,0.16); }
+  .stat-num { font-size: 20px; font-weight: 700; color: #a5b4fc; font-family: 'Space Grotesk', sans-serif; }
+  .stat-label { font-size: 11.5px; color: #64748b; margin-top: 2px; }
 
   .mock-card {
-    margin-top: 56px;
+    margin-top: 48px;
     max-width: 380px;
-    background: rgba(19, 26, 41, 0.7);
-    border: 1px solid #1e293b;
-    border-radius: 14px;
-    padding: 18px;
-    backdrop-filter: blur(6px);
+    background: rgba(15, 20, 33, 0.55);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   }
-  .mock-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .mock-row { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
   .mock-row:last-child { margin-bottom: 0; }
-  .mock-bar { height: 8px; border-radius: 4px; background: #1e293b; overflow: hidden; flex: 1; position: relative; }
-  .mock-bar-fill { height: 100%; border-radius: 4px; animation: fillBar 2.4s ease-out forwards; }
+  .mock-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; flex: 1; }
+  .mock-bar-fill { height: 100%; border-radius: 4px; animation: fillBar 1.8s cubic-bezier(0.16,1,0.3,1) forwards; }
   @keyframes fillBar { from { width: 0%; } }
-  .mock-label { font-size: 11.5px; color: #64748b; width: 90px; flex-shrink: 0; }
+  .mock-label { font-size: 11px; color: #64748b; width: 92px; flex-shrink: 0; }
 
-  .fade-in { opacity: 0; animation: fadeUp 0.6s ease forwards; }
-  .fade-in.delay-1 { animation-delay: 0.08s; }
-  .fade-in.delay-2 { animation-delay: 0.16s; }
-  .fade-in.delay-3 { animation-delay: 0.24s; }
+  .fade-in { opacity: 0; animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+  .fade-in.delay-1 { animation-delay: 0.1s; }
+  .fade-in.delay-2 { animation-delay: 0.2s; }
+  .fade-in.delay-3 { animation-delay: 0.3s; }
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* Right panel with 3D tilt on mouse move */
   .form-panel {
     width: 460px;
-    background: #0f1522;
+    background: #0a0e1a;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 40px;
-    border-left: 1px solid #1e293b;
+    border-left: 1px solid rgba(99,102,241,0.15);
+    perspective: 1200px;
   }
-  .form-box { width: 100%; max-width: 340px; }
-  .form-heading { font-size: 24px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
-  .form-subheading { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+  .form-box {
+    width: 100%; max-width: 340px;
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out;
+    background: rgba(19, 26, 41, 0.4);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(10px);
+  }
+  .form-heading {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px;
+  }
+  .form-subheading { font-size: 13.5px; color: #64748b; margin-bottom: 26px; }
 
-  .tabs { display: flex; background: #131a29; border-radius: 10px; padding: 4px; margin-bottom: 28px; border: 1px solid #1e293b; }
-  .tab { flex: 1; text-align: center; padding: 9px; cursor: pointer; border-radius: 8px; font-size: 14px; font-weight: 600; color: #64748b; transition: all 0.15s; }
-  .tab.active { background: #1e293b; color: #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .tabs { display: flex; background: rgba(255,255,255,0.03); border-radius: 11px; padding: 4px; margin-bottom: 26px; border: 1px solid rgba(99,102,241,0.15); }
+  .tab { flex: 1; text-align: center; padding: 9px; cursor: pointer; border-radius: 8px; font-size: 13.5px; font-weight: 600; color: #64748b; transition: all 0.2s; }
+  .tab.active { background: linear-gradient(135deg, #6366f1, #22d3ee); color: white; box-shadow: 0 2px 10px rgba(99,102,241,0.4); }
 
-  label { display: block; font-size: 12.5px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; margin-top: 16px; }
+  label { display: block; font-size: 11.5px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 15px; }
   input, select {
-    width: 100%; padding: 11px 12px; font-size: 14px; font-family: inherit;
-    background: #131a29; border: 1.5px solid #263145; border-radius: 8px; outline: none;
-    color: #e2e8f0; transition: border-color 0.15s;
+    width: 100%; padding: 11px 13px; font-size: 14px; font-family: inherit;
+    background: rgba(255,255,255,0.03); border: 1.5px solid rgba(99,102,241,0.2); border-radius: 9px; outline: none;
+    color: #e2e8f0; transition: border-color 0.2s, background 0.2s;
   }
   input::placeholder { color: #4b5871; }
-  input:focus, select:focus { border-color: #3b82f6; }
+  input:focus, select:focus { border-color: #818cf8; background: rgba(99,102,241,0.06); }
 
   button.primary {
-    width: 100%; margin-top: 24px; padding: 12px; border: none; border-radius: 8px;
-    background: #2563eb; color: white; font-size: 14.5px; font-weight: 600; cursor: pointer;
-    transition: background 0.15s; font-family: inherit;
+    width: 100%; margin-top: 22px; padding: 13px; border: none; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #22d3ee);
+    color: white; font-size: 14.5px; font-weight: 700; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s; font-family: inherit;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.35);
   }
-  button.primary:hover { background: #1d4ed8; }
+  button.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.5); }
+  button.primary:active { transform: translateY(0); }
 
   .error { color: #f87171; font-size: 13px; margin-top: 10px; }
   .hidden { display: none; }
@@ -145,56 +197,45 @@
 
 <div class="brand-panel" id="brandPanel">
   <canvas id="three-canvas"></canvas>
-  <div class="glow glow-1"></div>
-  <div class="glow glow-2"></div>
+  <div id="spotlight"></div>
 
   <div class="brand-content">
     <div class="brand-logo-row fade-in">
-      <svg width="34" height="34" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="loginBadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#5dade2"/>
-            <stop offset="100%" stop-color="#2980b9"/>
-          </linearGradient>
-        </defs>
-        <rect x="8" y="8" width="144" height="144" rx="32" fill="url(#loginBadgeGrad)"/>
-        <rect x="34" y="96" width="16" height="38" rx="3" fill="#ffffff" opacity="0.55"/>
-        <rect x="58" y="80" width="16" height="54" rx="3" fill="#ffffff" opacity="0.55"/>
-        <rect x="106" y="64" width="16" height="70" rx="3" fill="#ffffff" opacity="0.55"/>
-        <path d="M 26 108 L 52 108 L 62 84 L 74 128 L 86 96 L 98 108 L 134 108"
-              fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="134" cy="108" r="6" fill="#ffffff"/>
-      </svg>
-      <span class="brand-logo-text">DEVPULSE</span>
+      <div class="logo-badge">
+        <div class="logo-core">
+          <div class="logo-dot"></div>
+        </div>
+      </div>
+      <span class="brand-logo-text">DevPulse</span>
     </div>
     <h1 class="brand-title fade-in delay-1">Engineering visibility,<br>without the guesswork.</h1>
     <p class="brand-sub fade-in delay-1">Real-time GitHub analytics for teams — sprint velocity, review turnaround, code churn, and contributor activity, computed automatically.</p>
 
     <div class="brand-stats fade-in delay-2">
-      <div><div class="brand-stat-num">Live</div><div class="brand-stat-label">GitHub sync</div></div>
-      <div><div class="brand-stat-num">Team</div><div class="brand-stat-label">and repo insights</div></div>
-      <div><div class="brand-stat-num">Zero</div><div class="brand-stat-label">manual reports</div></div>
+      <div class="stat-chip"><div class="stat-num">Live</div><div class="stat-label">GitHub sync</div></div>
+      <div class="stat-chip"><div class="stat-num">Team</div><div class="stat-label">repo insights</div></div>
+      <div class="stat-chip"><div class="stat-num">Zero</div><div class="stat-label">manual reports</div></div>
     </div>
 
     <div class="mock-card fade-in delay-3">
       <div class="mock-row">
         <span class="mock-label">PR Turnaround</span>
-        <div class="mock-bar"><div class="mock-bar-fill" style="width:62%; background:#3b82f6;"></div></div>
+        <div class="mock-bar"><div class="mock-bar-fill" style="width:62%; background:linear-gradient(90deg,#6366f1,#818cf8);"></div></div>
       </div>
       <div class="mock-row">
         <span class="mock-label">Code Churn</span>
-        <div class="mock-bar"><div class="mock-bar-fill" style="width:80%; background:#60a5fa;"></div></div>
+        <div class="mock-bar"><div class="mock-bar-fill" style="width:80%; background:linear-gradient(90deg,#818cf8,#22d3ee);"></div></div>
       </div>
       <div class="mock-row">
         <span class="mock-label">Contributors</span>
-        <div class="mock-bar"><div class="mock-bar-fill" style="width:45%; background:#93c5fd;"></div></div>
+        <div class="mock-bar"><div class="mock-bar-fill" style="width:45%; background:linear-gradient(90deg,#22d3ee,#a855f7);"></div></div>
       </div>
     </div>
   </div>
 </div>
 
 <div class="form-panel">
-  <div class="form-box fade-in delay-2">
+  <div class="form-box fade-in delay-2" id="formBox">
     <div class="form-heading">Welcome back</div>
     <div class="form-subheading">Sign in to view your team's engineering metrics.</div>
 
@@ -279,10 +320,33 @@ async function register() {
   } catch (e) { errEl.textContent = 'Something went wrong: ' + e; }
 }
 
-/* ---------- 3D interactive background (Three.js) ---------- */
+/* ---------- Cursor spotlight ---------- */
+const brandPanel = document.getElementById('brandPanel');
+const spotlight = document.getElementById('spotlight');
+brandPanel.addEventListener('mousemove', (e) => {
+  const rect = brandPanel.getBoundingClientRect();
+  spotlight.style.left = (e.clientX - rect.left) + 'px';
+  spotlight.style.top = (e.clientY - rect.top) + 'px';
+});
+
+/* ---------- 3D tilt on the login card ---------- */
+const formBox = document.getElementById('formBox');
+document.querySelector('.form-panel').addEventListener('mousemove', (e) => {
+  const rect = formBox.getBoundingClientRect();
+  const x = e.clientX - rect.left - rect.width / 2;
+  const y = e.clientY - rect.top - rect.height / 2;
+  const rotateY = (x / rect.width) * 10;
+  const rotateX = -(y / rect.height) * 10;
+  formBox.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+});
+document.querySelector('.form-panel').addEventListener('mouseleave', () => {
+  formBox.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
+});
+
+/* ---------- 3D interactive particle field (Three.js), strongly mouse-reactive ---------- */
 (function initThree() {
-  if (typeof THREE === 'undefined') return; // fail silently if CDN didn't load
-  const panel = document.getElementById('brandPanel');
+  if (typeof THREE === 'undefined') return;
+  const panel = brandPanel;
   const canvas = document.getElementById('three-canvas');
   if (!panel || !canvas) return;
 
@@ -290,57 +354,69 @@ async function register() {
   const height = panel.clientHeight;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-  camera.position.z = 6;
+  const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
+  camera.position.z = 7;
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  // Wireframe icosahedron — abstract, blue-toned, matches the brand
-  const geometry = new THREE.IcosahedronGeometry(2.2, 1);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x3b82f6,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.55,
-  });
-  const shape = new THREE.Mesh(geometry, material);
-  shape.position.set(2.5, -0.5, 0);
+  // Central wireframe icosahedron
+  const geo = new THREE.IcosahedronGeometry(2.3, 1);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x818cf8, wireframe: true, transparent: true, opacity: 0.55 });
+  const shape = new THREE.Mesh(geo, mat);
+  shape.position.set(2.2, -0.3, 0);
   scene.add(shape);
 
-  // Small secondary shape for depth
-  const geometry2 = new THREE.OctahedronGeometry(0.9, 0);
-  const material2 = new THREE.MeshBasicMaterial({
-    color: 0x60a5fa,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.35,
-  });
-  const shape2 = new THREE.Mesh(geometry2, material2);
-  shape2.position.set(-1.5, 1.8, -1);
+  const geo2 = new THREE.OctahedronGeometry(1.0, 0);
+  const mat2 = new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true, transparent: true, opacity: 0.4 });
+  const shape2 = new THREE.Mesh(geo2, mat2);
+  shape2.position.set(-1.8, 2.0, -1);
   scene.add(shape2);
+
+  // Particle field that scatters based on cursor
+  const particleCount = 140;
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 14;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 8;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 6;
+  }
+  const particleGeo = new THREE.BufferGeometry();
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const particleMat = new THREE.PointsMaterial({ color: 0xa5b4fc, size: 0.035, transparent: true, opacity: 0.7 });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  scene.add(particles);
 
   let mouseX = 0, mouseY = 0;
   let targetX = 0, targetY = 0;
 
-  window.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+  panel.addEventListener('mousemove', (e) => {
+    const rect = panel.getBoundingClientRect();
+    mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouseY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
   });
 
   function animate() {
     requestAnimationFrame(animate);
 
-    shape.rotation.x += 0.0018;
-    shape.rotation.y += 0.0026;
-    shape2.rotation.x -= 0.0012;
-    shape2.rotation.y += 0.0016;
+    shape.rotation.x += 0.002;
+    shape.rotation.y += 0.003;
+    shape2.rotation.x -= 0.0015;
+    shape2.rotation.y += 0.002;
+    particles.rotation.y += 0.0004;
 
-    targetX += (mouseX - targetX) * 0.02;
-    targetY += (mouseY - targetY) * 0.02;
-    camera.position.x = targetX * 0.6;
-    camera.position.y = -targetY * 0.4;
+    // shapes lean toward the cursor directly (stronger response than before)
+    targetX += (mouseX - targetX) * 0.06;
+    targetY += (mouseY - targetY) * 0.06;
+
+    shape.position.x = 2.2 + targetX * 0.8;
+    shape.position.y = -0.3 - targetY * 0.5;
+    shape2.position.x = -1.8 - targetX * 0.5;
+    shape2.position.y = 2.0 + targetY * 0.4;
+
+    camera.position.x = targetX * 1.2;
+    camera.position.y = -targetY * 0.8;
     camera.lookAt(scene.position);
 
     renderer.render(scene, camera);
@@ -348,8 +424,7 @@ async function register() {
   animate();
 
   window.addEventListener('resize', () => {
-    const w = panel.clientWidth;
-    const h = panel.clientHeight;
+    const w = panel.clientWidth, h = panel.clientHeight;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
