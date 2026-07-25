@@ -79,7 +79,6 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
 
-  /* Live EKG-style pulse line — draws itself continuously, ties directly to "Pulse" */
   .pulse-line-wrap { width: 220px; height: 34px; margin-bottom: 20px; }
   .pulse-path {
     fill: none; stroke: url(#pulseGrad); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
@@ -92,7 +91,6 @@
     100% { stroke-dashoffset: -340; }
   }
 
-  /* Cycling headline */
   .brand-title {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 44px; font-weight: 700; line-height: 1.18; margin: 0 0 20px 0;
@@ -110,9 +108,10 @@
     display: block;
     color: #22d3ee;
     min-height: 1.2em;
+    position: relative;
   }
   .title-cycle .word {
-    display: inline-block;
+    position: absolute; left: 0; top: 0; white-space: nowrap;
     animation: cycleWord 9s infinite;
     opacity: 0;
   }
@@ -124,12 +123,9 @@
     8%, 28% { opacity: 1; transform: translateY(0); }
     34%, 100% { opacity: 0; transform: translateY(-8px); }
   }
-  .title-cycle { position: relative; }
-  .title-cycle .word { position: absolute; left: 0; top: 0; white-space: nowrap; }
 
   .brand-sub { font-size: 15.5px; color: #94a3b8; max-width: 400px; line-height: 1.6; }
 
-  /* Animated live counters — feels like real product stats */
   .live-stats { display: flex; gap: 28px; margin-top: 38px; }
   .live-stat-num {
     font-family: 'Space Grotesk', sans-serif;
@@ -368,7 +364,6 @@ async function register() {
   } catch (e) { errEl.textContent = 'Something went wrong: ' + e; }
 }
 
-/* ---------- Animated counters (real numbers from your actual testing, feel free to update) ---------- */
 function animateCounter(id, target, duration) {
   const el = document.getElementById(id);
   const start = performance.now();
@@ -387,7 +382,6 @@ setTimeout(() => {
   animateCounter('statRepos', 12, 1400);
 }, 500);
 
-/* ---------- Cursor spotlight ---------- */
 const brandPanel = document.getElementById('brandPanel');
 const spotlight = document.getElementById('spotlight');
 brandPanel.addEventListener('mousemove', (e) => {
@@ -396,7 +390,6 @@ brandPanel.addEventListener('mousemove', (e) => {
   spotlight.style.top = (e.clientY - rect.top) + 'px';
 });
 
-/* ---------- 3D tilt on the login card ---------- */
 const formBox = document.getElementById('formBox');
 document.querySelector('.form-panel').addEventListener('mousemove', (e) => {
   const rect = formBox.getBoundingClientRect();
@@ -410,7 +403,6 @@ document.querySelector('.form-panel').addEventListener('mouseleave', () => {
   formBox.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
 });
 
-/* ---------- 3D interactive particle field (Three.js) ---------- */
 (function initThree() {
   if (typeof THREE === 'undefined') return;
   const panel = brandPanel;
@@ -453,6 +445,61 @@ document.querySelector('.form-panel').addEventListener('mouseleave', () => {
   const particles = new THREE.Points(particleGeo, particleMat);
   scene.add(particles);
 
+  /* ---------- Git commit graph: nodes + branching/merging lines + traveling pulses ---------- */
+  const gitGraphGroup = new THREE.Group();
+  gitGraphGroup.position.set(-3.2, -1.5, -0.5);
+  scene.add(gitGraphGroup);
+
+  const nodePositions = [
+    [0, 0, 0], [0.6, 0.5, 0], [1.2, 1.0, 0], [1.8, 1.5, 0],
+    [1.2, 0.2, 0.3], [1.8, 0.6, 0.3],
+    [1.2, 1.8, -0.3], [1.8, 2.2, -0.3],
+    [2.4, 1.3, 0],
+  ];
+  const edges = [
+    [0,1],[1,2],[2,3],
+    [1,4],[4,5],[5,8],
+    [2,6],[6,7],[7,8],
+    [3,8],
+  ];
+
+  const nodeGeo = new THREE.SphereGeometry(0.06, 12, 12);
+  const nodeMatMain = new THREE.MeshBasicMaterial({ color: 0x818cf8 });
+  const nodeMatMerge = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+  const nodeMeshes = [];
+  nodePositions.forEach((p, i) => {
+    const mat = (i === 8) ? nodeMatMerge : nodeMatMain;
+    const mesh = new THREE.Mesh(nodeGeo, mat.clone());
+    mesh.position.set(...p);
+    gitGraphGroup.add(mesh);
+    nodeMeshes.push(mesh);
+  });
+
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x4c5a8a, transparent: true, opacity: 0.55 });
+  edges.forEach(([a, b]) => {
+    const points = [
+      new THREE.Vector3(...nodePositions[a]),
+      new THREE.Vector3(...nodePositions[b]),
+    ];
+    const geoLine = new THREE.BufferGeometry().setFromPoints(points);
+    gitGraphGroup.add(new THREE.Line(geoLine, lineMat));
+  });
+
+  const pulseGeo = new THREE.SphereGeometry(0.045, 8, 8);
+  const pulseMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9 });
+  const pulses = edges.map(([a, b], i) => {
+    const mesh = new THREE.Mesh(pulseGeo, pulseMat.clone());
+    mesh.userData = {
+      from: new THREE.Vector3(...nodePositions[a]),
+      to: new THREE.Vector3(...nodePositions[b]),
+      t: Math.random(),
+      speed: 0.006 + Math.random() * 0.004,
+      delay: i * 0.4,
+    };
+    gitGraphGroup.add(mesh);
+    return mesh;
+  });
+
   let mouseX = 0, mouseY = 0;
   let targetX = 0, targetY = 0;
 
@@ -470,6 +517,23 @@ document.querySelector('.form-panel').addEventListener('mouseleave', () => {
     shape2.rotation.x -= 0.0015;
     shape2.rotation.y += 0.002;
     particles.rotation.y += 0.0004;
+
+    gitGraphGroup.rotation.y += 0.0009;
+    gitGraphGroup.rotation.x = targetY * 0.15;
+
+    nodeMeshes.forEach((mesh, i) => {
+      const pulseScale = 1 + Math.sin(Date.now() * 0.002 + i) * 0.15;
+      mesh.scale.set(pulseScale, pulseScale, pulseScale);
+    });
+
+    pulses.forEach((p) => {
+      p.userData.t += p.userData.speed;
+      if (p.userData.t > 1) p.userData.t = 0;
+      p.position.lerpVectors(p.userData.from, p.userData.to, p.userData.t);
+      const opacity = Math.sin(p.userData.t * Math.PI);
+      p.material.opacity = opacity;
+      p.material.transparent = true;
+    });
 
     targetX += (mouseX - targetX) * 0.06;
     targetY += (mouseY - targetY) * 0.06;
