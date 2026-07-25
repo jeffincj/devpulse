@@ -14,6 +14,72 @@
     padding: 32px 20px 80px;
     background: #0b0f19;
     color: #e2e8f0;
+    position: relative;
+  }
+
+  /* ---------- Ambient side decorations (only visible on wide screens, purely decorative) ---------- */
+  .side-glow {
+    position: fixed;
+    top: 0;
+    width: 360px;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(90px);
+    opacity: 0.45;
+  }
+  .side-glow.left {
+    left: -160px;
+    background: radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%);
+    animation: driftSideL 22s ease-in-out infinite;
+  }
+  .side-glow.right {
+    right: -160px;
+    background: radial-gradient(circle, rgba(34,211,238,0.25) 0%, transparent 70%);
+    animation: driftSideR 26s ease-in-out infinite;
+  }
+  @keyframes driftSideL {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(60px); }
+  }
+  @keyframes driftSideR {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-50px); }
+  }
+
+  .side-pulse {
+    position: fixed;
+    top: 0;
+    width: 40px;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.35;
+  }
+  .side-pulse.left-pulse { left: 40px; }
+  .side-pulse.right-pulse { right: 40px; }
+  .pulse-track {
+    stroke: #263449;
+    stroke-width: 1.5;
+    stroke-dasharray: 4 6;
+  }
+  .pulse-dot {
+    fill: #60a5fa;
+  }
+  .pulse-anim {
+    animation: travelDown 5s linear infinite;
+  }
+  .pulse-anim.offset2 { animation-delay: 1.7s; }
+  .pulse-anim.offset3 { animation-delay: 3.3s; }
+  @keyframes travelDown {
+    0% { offset-distance: 0%; opacity: 0; }
+    8% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 0; }
+  }
+
+  @media (max-width: 1300px) {
+    .side-glow, .side-pulse { display: none; }
   }
 
   .topbar {
@@ -23,6 +89,8 @@
     margin-bottom: 28px;
     padding-bottom: 20px;
     border-bottom: 1px solid #1e293b;
+    position: relative;
+    z-index: 1;
   }
   .brand { display: flex; align-items: center; gap: 10px; }
   h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 0; letter-spacing: -0.3px; }
@@ -47,6 +115,8 @@
     margin-bottom: 18px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     transition: border-color 0.15s;
+    position: relative;
+    z-index: 1;
   }
   .card:hover { border-color: #2d3d54; }
 
@@ -104,6 +174,7 @@
   .warning-banner {
     background: #1c1608; border: 1px solid #4a3a0e; border-left: 3px solid #f59e0b;
     border-radius: 10px; padding: 16px 18px; margin-bottom: 24px; font-size: 13.5px; color: #eabc6a;
+    position: relative; z-index: 1;
   }
   .warning-banner strong { color: #fbbf24; }
 
@@ -141,6 +212,22 @@
 </style>
 </head>
 <body>
+
+<div class="side-glow left"></div>
+<div class="side-glow right"></div>
+
+<svg class="side-pulse left-pulse" viewBox="0 0 40 1000" preserveAspectRatio="none">
+  <line class="pulse-track" x1="20" y1="0" x2="20" y2="1000"/>
+  <circle class="pulse-dot pulse-anim" r="4" style="offset-path: path('M20,0 L20,1000');"/>
+  <circle class="pulse-dot pulse-anim offset2" r="4" style="offset-path: path('M20,0 L20,1000');"/>
+  <circle class="pulse-dot pulse-anim offset3" r="4" style="offset-path: path('M20,0 L20,1000');"/>
+</svg>
+<svg class="side-pulse right-pulse" viewBox="0 0 40 1000" preserveAspectRatio="none">
+  <line class="pulse-track" x1="20" y1="0" x2="20" y2="1000"/>
+  <circle class="pulse-dot pulse-anim" r="4" style="offset-path: path('M20,0 L20,1000');"/>
+  <circle class="pulse-dot pulse-anim offset2" r="4" style="offset-path: path('M20,0 L20,1000');"/>
+  <circle class="pulse-dot pulse-anim offset3" r="4" style="offset-path: path('M20,0 L20,1000');"/>
+</svg>
 
 <div class="topbar">
   <div class="brand">
