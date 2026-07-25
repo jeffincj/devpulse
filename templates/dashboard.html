@@ -5,6 +5,7 @@
 <title>DevPulse Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -17,7 +18,8 @@
     position: relative;
   }
 
-  /* ---------- Floating terminal panels that drift horizontally across the whole viewport, behind the content ---------- */
+  #three-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
   .term-panel {
     position: fixed;
     background: rgba(10, 14, 24, 0.55);
@@ -26,7 +28,7 @@
     overflow: hidden;
     backdrop-filter: blur(6px);
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
     box-shadow: 0 16px 50px rgba(0,0,0,0.3);
     width: 200px;
     height: 165px;
@@ -94,7 +96,7 @@
     padding-bottom: 20px;
     border-bottom: 1px solid #1e293b;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
   .brand { display: flex; align-items: center; gap: 12px; }
 
@@ -133,13 +135,12 @@
     background: #2563eb; display: flex; align-items: center; justify-content: center;
     font-size: 14px; font-weight: 700; color: white; overflow: hidden;
     cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s;
-    position: relative; z-index: 2;
   }
   .nav-avatar:hover { border-color: #3b82f6; }
 
   .quickjump {
     display: flex; flex-wrap: wrap; gap: 8px;
-    margin-bottom: 24px; position: relative; z-index: 1;
+    margin-bottom: 24px; position: relative; z-index: 2;
   }
   .qj-link {
     padding: 7px 13px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
@@ -157,7 +158,7 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     transition: border-color 0.15s;
     position: relative;
-    z-index: 1;
+    z-index: 2;
     scroll-margin-top: 20px;
   }
   .card:hover { border-color: #2d3d54; }
@@ -216,7 +217,7 @@
   .warning-banner {
     background: #1c1608; border: 1px solid #4a3a0e; border-left: 3px solid #f59e0b;
     border-radius: 10px; padding: 16px 18px; margin-bottom: 24px; font-size: 13.5px; color: #eabc6a;
-    position: relative; z-index: 1;
+    position: relative; z-index: 2;
   }
   .warning-banner strong { color: #fbbf24; }
 
@@ -254,6 +255,8 @@
 </style>
 </head>
 <body>
+
+<canvas id="three-bg"></canvas>
 
 <div class="term-panel row-1 drift-right"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>api.log</span></div><div class="term-body"><div class="term-scroll" id="t1"></div></div></div>
 <div class="term-panel row-2 drift-left"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>github.api</span></div><div class="term-body"><div class="term-scroll" id="t2"></div></div></div>
@@ -466,6 +469,90 @@ function jumpTo(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+/* ---------- Three.js background: rotating wireframe prism + connected particle network ---------- */
+(function initThreeBg() {
+  if (typeof THREE === 'undefined') return;
+  const canvas = document.getElementById('three-bg');
+  if (!canvas) return;
+
+  const width = window.innerWidth, height = window.innerHeight;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
+  camera.position.z = 9;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Prism (wireframe icosahedron), positioned top-right, out of the way of centered content
+  const prismGeo = new THREE.IcosahedronGeometry(2.6, 0);
+  const prismMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9, wireframe: true, transparent: true, opacity: 0.28 });
+  const prism = new THREE.Mesh(prismGeo, prismMat);
+  prism.position.set(5.5, 2.2, -3);
+  scene.add(prism);
+
+  // Connected particle network: nodes drifting slowly, with lines to nearby nodes
+  const nodeCount = 26;
+  const nodes = [];
+  const nodeGeo = new THREE.SphereGeometry(0.045, 10, 10);
+  const colors = [0x818cf8, 0x22d3ee, 0xa78bfa, 0x60a5fa];
+
+  for (let i = 0; i < nodeCount; i++) {
+    const mat = new THREE.MeshBasicMaterial({ color: colors[i % colors.length] });
+    const mesh = new THREE.Mesh(nodeGeo, mat);
+    mesh.position.set((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 4);
+    mesh.userData.velocity = new THREE.Vector3((Math.random() - 0.5) * 0.004, (Math.random() - 0.5) * 0.004, 0);
+    scene.add(mesh);
+    nodes.push(mesh);
+  }
+
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x3b4a6b, transparent: true, opacity: 0.35 });
+  let lineGroup = new THREE.Group();
+  scene.add(lineGroup);
+
+  function rebuildLines() {
+    scene.remove(lineGroup);
+    lineGroup = new THREE.Group();
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const d = nodes[i].position.distanceTo(nodes[j].position);
+        if (d < 2.4) {
+          const geo = new THREE.BufferGeometry().setFromPoints([nodes[i].position, nodes[j].position]);
+          lineGroup.add(new THREE.Line(geo, lineMat));
+        }
+      }
+    }
+    scene.add(lineGroup);
+  }
+
+  let frame = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    frame++;
+
+    prism.rotation.x += 0.0016;
+    prism.rotation.y += 0.0022;
+
+    nodes.forEach(n => {
+      n.position.add(n.userData.velocity);
+      if (Math.abs(n.position.x) > 7) n.userData.velocity.x *= -1;
+      if (Math.abs(n.position.y) > 5) n.userData.velocity.y *= -1;
+    });
+
+    if (frame % 6 === 0) rebuildLines();
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    const w = window.innerWidth, h = window.innerHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+})();
 
 (function buildTerminalLogs() {
   const sets = [
