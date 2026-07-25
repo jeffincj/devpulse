@@ -1,14 +1,273 @@
-(venv) PS C:\BTech CSE AIML(2024-2028)\Github_Project\HACA-Academy\Version_1.0\devpulse_build> git add templates/login.html
->> git commit -m "Add subtle animated background and fade-in entrance to login page"
->> git push
-On branch main
-Your branch is up to date with 'origin/main'.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DevPulse — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    background: #0b0f19;
+  }
 
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-        modified:   templates/dashboard.html
+  /* Left panel — brand side */
+  .brand-panel {
+    flex: 1;
+    background: #0b0f19;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    position: relative;
+    overflow: hidden;
+  }
 
-no changes added to commit (use "git add" and/or "git commit -a")
-Everything up-to-date
-(venv) PS C:\BTech CSE AIML(2024-2028)\Github_Project\HACA-Academy\Version_1.0\devpulse_build> 
+  /* Animated drifting glow blobs, very subtle */
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .glow-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(59,130,246,0.5) 0%, transparent 70%);
+    top: -150px; left: -100px;
+    animation: drift1 18s ease-in-out infinite;
+  }
+  .glow-2 {
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(96,165,250,0.35) 0%, transparent 70%);
+    bottom: -120px; left: 20%;
+    animation: drift2 22s ease-in-out infinite;
+  }
+  .glow-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(29,78,216,0.35) 0%, transparent 70%);
+    top: 30%; right: -80px;
+    animation: drift3 20s ease-in-out infinite;
+  }
+  @keyframes drift1 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(40px, 30px); }
+  }
+  @keyframes drift2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-30px, -25px); }
+  }
+  @keyframes drift3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-20px, 20px) scale(1.08); }
+  }
+
+  .brand-content { position: relative; z-index: 1; }
+
+  .brand-logo { font-size: 15px; letter-spacing: 3px; color: #60a5fa; font-weight: 600; text-transform: uppercase; margin-bottom: 24px; }
+  .brand-title { font-size: 42px; font-weight: 700; line-height: 1.2; margin: 0 0 20px 0; }
+  .brand-sub { font-size: 16px; color: #94a3b8; max-width: 380px; line-height: 1.6; }
+  .brand-stats { display: flex; gap: 36px; margin-top: 48px; }
+  .brand-stat-num { font-size: 26px; font-weight: 700; color: #60a5fa; }
+  .brand-stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+  /* Simple abstract "dashboard preview" graphic filling the empty space */
+  .mock-card {
+    margin-top: 56px;
+    max-width: 380px;
+    background: rgba(19, 26, 41, 0.6);
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 18px;
+    backdrop-filter: blur(6px);
+  }
+  .mock-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .mock-row:last-child { margin-bottom: 0; }
+  .mock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .mock-bar { height: 8px; border-radius: 4px; background: #1e293b; overflow: hidden; flex: 1; position: relative; }
+  .mock-bar-fill { height: 100%; border-radius: 4px; animation: fillBar 2.4s ease-out forwards; }
+  @keyframes fillBar { from { width: 0%; } }
+  .mock-label { font-size: 11.5px; color: #64748b; width: 90px; flex-shrink: 0; }
+
+  /* Fade-in entrance for both panels */
+  .fade-in { opacity: 0; animation: fadeUp 0.6s ease forwards; }
+  .fade-in.delay-1 { animation-delay: 0.08s; }
+  .fade-in.delay-2 { animation-delay: 0.16s; }
+  .fade-in.delay-3 { animation-delay: 0.24s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Right panel — form side */
+  .form-panel {
+    width: 460px;
+    background: #0f1522;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    border-left: 1px solid #1e293b;
+  }
+  .form-box { width: 100%; max-width: 340px; }
+  .form-heading { font-size: 24px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+  .form-subheading { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+
+  .tabs { display: flex; background: #131a29; border-radius: 10px; padding: 4px; margin-bottom: 28px; border: 1px solid #1e293b; }
+  .tab { flex: 1; text-align: center; padding: 9px; cursor: pointer; border-radius: 8px; font-size: 14px; font-weight: 600; color: #64748b; transition: all 0.15s; }
+  .tab.active { background: #1e293b; color: #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+  label { display: block; font-size: 12.5px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; margin-top: 16px; }
+  input, select {
+    width: 100%; padding: 11px 12px; font-size: 14px; font-family: inherit;
+    background: #131a29; border: 1.5px solid #263145; border-radius: 8px; outline: none;
+    color: #e2e8f0; transition: border-color 0.15s;
+  }
+  input::placeholder { color: #4b5871; }
+  input:focus, select:focus { border-color: #3b82f6; }
+
+  button.primary {
+    width: 100%; margin-top: 24px; padding: 12px; border: none; border-radius: 8px;
+    background: #2563eb; color: white; font-size: 14.5px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s; font-family: inherit;
+  }
+  button.primary:hover { background: #1d4ed8; }
+
+  .error { color: #f87171; font-size: 13px; margin-top: 10px; }
+  .hidden { display: none; }
+
+  @media (max-width: 900px) {
+    .brand-panel { display: none; }
+    .form-panel { width: 100%; border-left: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-panel">
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="glow glow-3"></div>
+
+  <div class="brand-content">
+    <div class="brand-logo fade-in">DEVPULSE</div>
+    <h1 class="brand-title fade-in delay-1">Engineering visibility,<br>without the guesswork.</h1>
+    <p class="brand-sub fade-in delay-1">Real-time GitHub analytics for teams — sprint velocity, review turnaround, code churn, and contributor activity, computed automatically.</p>
+
+    <div class="brand-stats fade-in delay-2">
+      <div><div class="brand-stat-num">Live</div><div class="brand-stat-label">GitHub sync</div></div>
+      <div><div class="brand-stat-num">Team</div><div class="brand-stat-label">and repo insights</div></div>
+      <div><div class="brand-stat-num">Zero</div><div class="brand-stat-label">manual reports</div></div>
+    </div>
+
+    <div class="mock-card fade-in delay-3">
+      <div class="mock-row">
+        <span class="mock-label">PR Turnaround</span>
+        <div class="mock-bar"><div class="mock-bar-fill" style="width:62%; background:#3b82f6;"></div></div>
+      </div>
+      <div class="mock-row">
+        <span class="mock-label">Code Churn</span>
+        <div class="mock-bar"><div class="mock-bar-fill" style="width:80%; background:#60a5fa;"></div></div>
+      </div>
+      <div class="mock-row">
+        <span class="mock-label">Contributors</span>
+        <div class="mock-bar"><div class="mock-bar-fill" style="width:45%; background:#93c5fd;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-panel">
+  <div class="form-box fade-in delay-2">
+    <div class="form-heading">Welcome back</div>
+    <div class="form-subheading">Sign in to view your team's engineering metrics.</div>
+
+    <div class="tabs">
+      <div class="tab active" id="loginTab" onclick="showTab('login')">Log in</div>
+      <div class="tab" id="registerTab" onclick="showTab('register')">Register</div>
+    </div>
+
+    <div id="loginForm">
+      <label>Username</label>
+      <input id="loginUsername">
+      <label>Password</label>
+      <input id="loginPassword" type="password">
+      <div class="error" id="loginError"></div>
+      <button class="primary" onclick="login()">Log in</button>
+    </div>
+
+    <div id="registerForm" class="hidden">
+      <label>Username</label>
+      <input id="regUsername">
+      <label>Email</label>
+      <input id="regEmail">
+      <label>Password</label>
+      <input id="regPassword" type="password">
+      <label>Role</label>
+      <select id="regRole">
+        <option value="manager">Manager</option>
+        <option value="developer">Developer</option>
+      </select>
+      <div class="error" id="registerError"></div>
+      <button class="primary" onclick="register()">Create account</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(which) {
+  document.getElementById('loginTab').classList.toggle('active', which === 'login');
+  document.getElementById('registerTab').classList.toggle('active', which === 'register');
+  document.getElementById('loginForm').classList.toggle('hidden', which !== 'login');
+  document.getElementById('registerForm').classList.toggle('hidden', which !== 'register');
+}
+
+async function login() {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  try {
+    const res = await fetch('/api/auth/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = 'Login failed — check your username and password.'; return; }
+    localStorage.setItem('devpulse_access', data.access);
+    localStorage.setItem('devpulse_refresh', data.refresh);
+    window.location.href = '/dashboard/';
+  } catch (e) { errEl.textContent = 'Something went wrong: ' + e; }
+}
+
+async function register() {
+  const username = document.getElementById('regUsername').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+  const role = document.getElementById('regRole').value;
+  const errEl = document.getElementById('registerError');
+  errEl.textContent = '';
+  try {
+    const res = await fetch('/api/auth/register/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password, role, github_username: '' })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = JSON.stringify(data); return; }
+    document.getElementById('loginUsername').value = username;
+    document.getElementById('loginPassword').value = password;
+    showTab('login');
+    login();
+  } catch (e) { errEl.textContent = 'Something went wrong: ' + e; }
+}
+</script>
+
+</body>
+</html>
