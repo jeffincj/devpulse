@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>DevPulse — My Profile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
   body {
@@ -12,7 +12,7 @@
     max-width: 700px;
     margin: 0 auto;
     padding: 0 20px 80px;
-    background: #0b0f19;
+    background: #05070d;
     color: #e2e8f0;
   }
 
@@ -20,15 +20,35 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 18px 0; border-bottom: 1px solid #1e293b; margin-bottom: 24px;
   }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand-name { font-size: 17px; font-weight: 700; color: #f1f5f9; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+
+  .logo-badge {
+    position: relative; width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: conic-gradient(from 0deg, #6366f1, #22d3ee, #a855f7, #6366f1);
+    animation: spinGrad 4s linear infinite;
+  }
+  @keyframes spinGrad { to { transform: rotate(360deg); } }
+  .logo-core { width: 26px; height: 26px; border-radius: 8px; background: #05070d; display: flex; align-items: center; justify-content: center; }
+  .logo-dot { width: 9px; height: 9px; border-radius: 50%; background: linear-gradient(135deg, #818cf8, #22d3ee); animation: pulseDot 1.6s ease-in-out infinite; }
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,0.6); }
+    50% { transform: scale(1.35); box-shadow: 0 0 0 7px rgba(99,102,241,0); }
+  }
+  .brand-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px; font-weight: 700;
+    background: linear-gradient(90deg, #f1f5f9, #a5b4fc);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
   .nav-links { display: flex; align-items: center; gap: 6px; }
   .nav-link {
     padding: 8px 14px; border-radius: 7px; font-size: 13.5px; font-weight: 600;
     color: #94a3b8; text-decoration: none; cursor: pointer; transition: all 0.15s;
   }
   .nav-link:hover { background: #1a2332; color: #e2e8f0; }
-  .nav-link.active { background: #1e293b; color: #f1f5f9; }
+  .nav-link.active { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(34,211,238,0.15)); color: #f1f5f9; }
   .nav-avatar {
     width: 32px; height: 32px; border-radius: 50%; margin-left: 8px;
     background: #2563eb; display: flex; align-items: center; justify-content: center;
@@ -74,21 +94,11 @@
 
 <div class="navbar">
   <div class="brand">
-    <svg width="32" height="32" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="profileBadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#3498db"/>
-          <stop offset="100%" stop-color="#1c5980"/>
-        </linearGradient>
-      </defs>
-      <rect x="8" y="8" width="144" height="144" rx="32" fill="url(#profileBadgeGrad)"/>
-      <rect x="34" y="96" width="16" height="38" rx="3" fill="#ffffff" opacity="0.55"/>
-      <rect x="58" y="80" width="16" height="54" rx="3" fill="#ffffff" opacity="0.55"/>
-      <rect x="106" y="64" width="16" height="70" rx="3" fill="#ffffff" opacity="0.55"/>
-      <path d="M 26 108 L 52 108 L 62 84 L 74 128 L 86 96 L 98 108 L 134 108"
-            fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="134" cy="108" r="6" fill="#ffffff"/>
-    </svg>
+    <div class="logo-badge">
+      <div class="logo-core">
+        <div class="logo-dot"></div>
+      </div>
+    </div>
     <span class="brand-name">DevPulse</span>
   </div>
   <div class="nav-links">

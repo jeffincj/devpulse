@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>DevPulse Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
   body {
@@ -12,74 +12,58 @@
     max-width: 920px;
     margin: 0 auto;
     padding: 32px 20px 80px;
-    background: #0b0f19;
+    background: #05070d;
     color: #e2e8f0;
     position: relative;
   }
 
-  /* ---------- Ambient side decorations (only visible on wide screens, purely decorative) ---------- */
-  .side-glow {
+  /* ---------- Commit stream side decorations (GitHub-themed, wide screens only) ---------- */
+  .commit-stream {
     position: fixed;
     top: 0;
-    width: 360px;
+    width: 260px;
     height: 100vh;
     pointer-events: none;
     z-index: 0;
-    filter: blur(90px);
-    opacity: 0.45;
+    overflow: hidden;
+    opacity: 0.5;
+    mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
   }
-  .side-glow.left {
-    left: -160px;
-    background: radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%);
-    animation: driftSideL 22s ease-in-out infinite;
+  .commit-stream.left { left: -60px; }
+  .commit-stream.right { right: -60px; }
+
+  .stream-track {
+    position: absolute;
+    width: 100%;
+    animation: scrollDown 26s linear infinite;
   }
-  .side-glow.right {
-    right: -160px;
-    background: radial-gradient(circle, rgba(34,211,238,0.25) 0%, transparent 70%);
-    animation: driftSideR 26s ease-in-out infinite;
-  }
-  @keyframes driftSideL {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(60px); }
-  }
-  @keyframes driftSideR {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-50px); }
+  .commit-stream.right .stream-track { animation-duration: 32s; }
+
+  @keyframes scrollDown {
+    from { transform: translateY(-50%); }
+    to { transform: translateY(0%); }
   }
 
-  .side-pulse {
-    position: fixed;
-    top: 0;
-    width: 40px;
-    height: 100vh;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.35;
+  .commit-node-row { display: flex; align-items: center; gap: 10px; padding: 22px 0; padding-left: 30px; position: relative; }
+  .commit-node-row::before {
+    content: ''; position: absolute; left: 14px; top: -22px; width: 1.5px; height: calc(100% + 44px);
+    background: linear-gradient(180deg, transparent, #263449 20%, #263449 80%, transparent);
   }
-  .side-pulse.left-pulse { left: 40px; }
-  .side-pulse.right-pulse { right: 40px; }
-  .pulse-track {
-    stroke: #263449;
-    stroke-width: 1.5;
-    stroke-dasharray: 4 6;
+  .commit-node {
+    width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; position: relative; z-index: 1;
+    box-shadow: 0 0 10px 2px currentColor;
+    animation: nodePulse 3s ease-in-out infinite;
   }
-  .pulse-dot {
-    fill: #60a5fa;
-  }
-  .pulse-anim {
-    animation: travelDown 5s linear infinite;
-  }
-  .pulse-anim.offset2 { animation-delay: 1.7s; }
-  .pulse-anim.offset3 { animation-delay: 3.3s; }
-  @keyframes travelDown {
-    0% { offset-distance: 0%; opacity: 0; }
-    8% { opacity: 1; }
-    92% { opacity: 1; }
-    100% { offset-distance: 100%; opacity: 0; }
-  }
+  @keyframes nodePulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+  .commit-msg { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b; white-space: nowrap; }
+  .commit-msg .type { font-weight: 500; }
+  .type-feat { color: #4ade80; }
+  .type-fix { color: #f87171; }
+  .type-chore { color: #94a3b8; }
+  .type-merge { color: #a78bfa; }
 
   @media (max-width: 1300px) {
-    .side-glow, .side-pulse { display: none; }
+    .commit-stream { display: none; }
   }
 
   .topbar {
@@ -92,15 +76,45 @@
     position: relative;
     z-index: 1;
   }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin: 0; letter-spacing: -0.3px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+
+  /* New animated logo, matching login page */
+  .logo-badge {
+    position: relative;
+    width: 36px; height: 36px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    background: conic-gradient(from 0deg, #6366f1, #22d3ee, #a855f7, #6366f1);
+    animation: spinGrad 4s linear infinite;
+  }
+  @keyframes spinGrad { to { transform: rotate(360deg); } }
+  .logo-core {
+    width: 27px; height: 27px; border-radius: 8px;
+    background: #05070d;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: linear-gradient(135deg, #818cf8, #22d3ee);
+    animation: pulseDot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99,102,241,0.6); }
+    50% { transform: scale(1.35); box-shadow: 0 0 0 7px rgba(99,102,241,0); }
+  }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 19px; font-weight: 700; margin: 0; letter-spacing: -0.2px;
+    background: linear-gradient(90deg, #f1f5f9, #a5b4fc);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
 
   .nav-link {
     padding: 8px 14px; border-radius: 7px; font-size: 13.5px; font-weight: 600;
     color: #94a3b8; text-decoration: none; cursor: pointer; transition: all 0.15s;
   }
   .nav-link:hover { background: #1a2332; color: #e2e8f0; }
-  .nav-link.active { background: #1e293b; color: #f1f5f9; }
+  .nav-link.active { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(34,211,238,0.15)); color: #f1f5f9; }
   .nav-avatar {
     width: 32px; height: 32px; border-radius: 50%; margin-left: 8px;
     background: #2563eb; display: flex; align-items: center; justify-content: center;
@@ -213,39 +227,20 @@
 </head>
 <body>
 
-<div class="side-glow left"></div>
-<div class="side-glow right"></div>
-
-<svg class="side-pulse left-pulse" viewBox="0 0 40 1000" preserveAspectRatio="none">
-  <line class="pulse-track" x1="20" y1="0" x2="20" y2="1000"/>
-  <circle class="pulse-dot pulse-anim" r="4" style="offset-path: path('M20,0 L20,1000');"/>
-  <circle class="pulse-dot pulse-anim offset2" r="4" style="offset-path: path('M20,0 L20,1000');"/>
-  <circle class="pulse-dot pulse-anim offset3" r="4" style="offset-path: path('M20,0 L20,1000');"/>
-</svg>
-<svg class="side-pulse right-pulse" viewBox="0 0 40 1000" preserveAspectRatio="none">
-  <line class="pulse-track" x1="20" y1="0" x2="20" y2="1000"/>
-  <circle class="pulse-dot pulse-anim" r="4" style="offset-path: path('M20,0 L20,1000');"/>
-  <circle class="pulse-dot pulse-anim offset2" r="4" style="offset-path: path('M20,0 L20,1000');"/>
-  <circle class="pulse-dot pulse-anim offset3" r="4" style="offset-path: path('M20,0 L20,1000');"/>
-</svg>
+<div class="commit-stream left">
+  <div class="stream-track" id="streamLeft"></div>
+</div>
+<div class="commit-stream right">
+  <div class="stream-track" id="streamRight"></div>
+</div>
 
 <div class="topbar">
   <div class="brand">
-    <svg width="34" height="34" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="dashBadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#3498db"/>
-          <stop offset="100%" stop-color="#1c5980"/>
-        </linearGradient>
-      </defs>
-      <rect x="8" y="8" width="144" height="144" rx="32" fill="url(#dashBadgeGrad)"/>
-      <rect x="34" y="96" width="16" height="38" rx="3" fill="#ffffff" opacity="0.55"/>
-      <rect x="58" y="80" width="16" height="54" rx="3" fill="#ffffff" opacity="0.55"/>
-      <rect x="106" y="64" width="16" height="70" rx="3" fill="#ffffff" opacity="0.55"/>
-      <path d="M 26 108 L 52 108 L 62 84 L 74 128 L 86 96 L 98 108 L 134 108"
-            fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="134" cy="108" r="6" fill="#ffffff"/>
-    </svg>
+    <div class="logo-badge">
+      <div class="logo-core">
+        <div class="logo-dot"></div>
+      </div>
+    </div>
     <h1>DevPulse</h1>
   </div>
   <div style="display:flex; align-items:center; gap:6px;">
@@ -436,6 +431,37 @@
 <script>
 const token = localStorage.getItem('devpulse_access');
 if (!token) window.location.href = '/login/';
+
+/* ---------- Build the animated commit stream side decorations ---------- */
+(function buildCommitStream() {
+  const messages = [
+    { type: 'feat', text: 'add sync retry logic', cls: 'type-feat' },
+    { type: 'fix', text: 'handle empty repo list', cls: 'type-fix' },
+    { type: 'chore', text: 'bump dependencies', cls: 'type-chore' },
+    { type: 'merge', text: "merge branch 'develop'", cls: 'type-merge' },
+    { type: 'feat', text: 'add leaderboard filters', cls: 'type-feat' },
+    { type: 'fix', text: 'correct PR turnaround calc', cls: 'type-fix' },
+    { type: 'chore', text: 'update README', cls: 'type-chore' },
+    { type: 'feat', text: 'add profile photo upload', cls: 'type-feat' },
+  ];
+  const colors = ['#818cf8', '#22d3ee', '#a78bfa', '#4ade80'];
+
+  function buildUnit() {
+    let html = '';
+    messages.forEach((m, i) => {
+      const color = colors[i % colors.length];
+      html += `<div class="commit-node-row">
+        <div class="commit-node" style="background:${color}; color:${color};"></div>
+        <span class="commit-msg"><span class="type ${m.cls}">${m.type}:</span> ${m.text}</span>
+      </div>`;
+    });
+    return html;
+  }
+
+  const unit = buildUnit();
+  document.getElementById('streamLeft').innerHTML = unit + unit;
+  document.getElementById('streamRight').innerHTML = unit + unit;
+})();
 
 function headers(extra) {
   return Object.assign({ "Authorization": "Bearer " + token }, extra || {});
