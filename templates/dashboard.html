@@ -17,9 +17,10 @@
     position: relative;
   }
 
-  /* ---------- Multiple terminal panels spread down both sides ---------- */
+  /* ---------- All terminal panels now on the right side, stacked ---------- */
   .term-panel {
     position: fixed;
+    right: -75px;
     background: rgba(10, 14, 24, 0.65);
     border: 1px solid rgba(99,102,241,0.22);
     border-radius: 11px;
@@ -29,13 +30,14 @@
     z-index: 0;
     box-shadow: 0 16px 50px rgba(0,0,0,0.35);
     width: 210px;
-    height: 190px;
+    height: 175px;
   }
-  .term-panel.side-left { left: -75px; }
-  .term-panel.side-right { right: -75px; }
-  .term-panel.pos-1 { top: 4%; }
-  .term-panel.pos-2 { top: 40%; opacity: 0.85; }
-  .term-panel.pos-3 { top: 74%; opacity: 0.7; }
+  .term-panel.pos-1 { top: 2%; }
+  .term-panel.pos-2 { top: 18%; opacity: 0.95; }
+  .term-panel.pos-3 { top: 34%; opacity: 0.9; }
+  .term-panel.pos-4 { top: 50%; opacity: 0.85; }
+  .term-panel.pos-5 { top: 66%; opacity: 0.78; }
+  .term-panel.pos-6 { top: 82%; opacity: 0.7; }
 
   .term-titlebar {
     display: flex; align-items: center; gap: 5px;
@@ -244,13 +246,12 @@
 </head>
 <body>
 
-<div class="term-panel side-left pos-1"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>api.log</span></div><div class="term-body"><div class="t-speed-1" id="tL1"></div></div></div>
-<div class="term-panel side-left pos-2"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>sync.log</span></div><div class="term-body"><div class="t-speed-2 rev" id="tL2"></div></div></div>
-<div class="term-panel side-left pos-3"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>metrics.log</span></div><div class="term-body"><div class="t-speed-3" id="tL3"></div></div></div>
-
-<div class="term-panel side-right pos-1"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>devpulse.svc</span></div><div class="term-body"><div class="t-speed-2" id="tR1"></div></div></div>
-<div class="term-panel side-right pos-2"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>github.api</span></div><div class="term-body"><div class="t-speed-1 rev" id="tR2"></div></div></div>
-<div class="term-panel side-right pos-3"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>feedback.log</span></div><div class="term-body"><div class="t-speed-3 rev" id="tR3"></div></div></div>
+<div class="term-panel pos-1"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>devpulse.svc</span></div><div class="term-body"><div class="t-speed-2" id="tR1"></div></div></div>
+<div class="term-panel pos-2"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>github.api</span></div><div class="term-body"><div class="t-speed-1 rev" id="tR2"></div></div></div>
+<div class="term-panel pos-3"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>feedback.log</span></div><div class="term-body"><div class="t-speed-3 rev" id="tR3"></div></div></div>
+<div class="term-panel pos-4"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>api.log</span></div><div class="term-body"><div class="t-speed-1" id="tL1"></div></div></div>
+<div class="term-panel pos-5"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>sync.log</span></div><div class="term-body"><div class="t-speed-2 rev" id="tL2"></div></div></div>
+<div class="term-panel pos-6"><div class="term-titlebar"><div class="term-dot" style="background:#f87171;"></div><div class="term-dot" style="background:#fbbf24;"></div><div class="term-dot" style="background:#4ade80;"></div><span>metrics.log</span></div><div class="term-body"><div class="t-speed-3" id="tL3"></div></div></div>
 
 <div class="topbar">
   <div class="brand">
@@ -265,12 +266,9 @@
 </div>
 
 <div class="quickjump" id="managerQuickjump">
-  <div class="qj-link" onclick="jumpTo('flagsCard')">🚩 Alerts</div>
   <div class="qj-link" onclick="jumpTo('leaderboardCard')">🏆 Leaderboard</div>
   <div class="qj-link" onclick="jumpTo('fullReportCard')">⚡ Full Report</div>
   <div class="qj-link" onclick="jumpTo('compareCard')">⚖️ Compare</div>
-  <div class="qj-link" onclick="jumpTo('churnCard')">📊 Code Churn</div>
-  <div class="qj-link" onclick="jumpTo('turnaroundCard')">⏱ Turnaround</div>
   <div class="qj-link" onclick="jumpTo('pendingCard')">🔍 Pending Review</div>
 </div>
 
@@ -501,12 +499,12 @@ function jumpTo(id) {
     return html + html;
   }
 
-  document.getElementById('tL1').innerHTML = unit(setA);
-  document.getElementById('tL2').innerHTML = unit(setB);
-  document.getElementById('tL3').innerHTML = unit(setC);
   document.getElementById('tR1').innerHTML = unit(setD);
   document.getElementById('tR2').innerHTML = unit(setE);
   document.getElementById('tR3').innerHTML = unit(setF);
+  document.getElementById('tL1').innerHTML = unit(setA);
+  document.getElementById('tL2').innerHTML = unit(setB);
+  document.getElementById('tL3').innerHTML = unit(setC);
 })();
 
 function headers(extra) {
