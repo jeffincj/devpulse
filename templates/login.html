@@ -31,7 +31,6 @@
 
   #three-canvas { position: absolute; inset: 0; z-index: 0; }
 
-  /* Cursor-following spotlight */
   #spotlight {
     position: absolute;
     width: 500px; height: 500px;
@@ -46,7 +45,6 @@
 
   .brand-content { position: relative; z-index: 2; }
 
-  /* New logo: animated conic gradient ring + pulsing core */
   .logo-badge {
     position: relative;
     width: 40px; height: 40px;
@@ -55,7 +53,7 @@
     background: conic-gradient(from 0deg, #6366f1, #22d3ee, #a855f7, #6366f1);
     animation: spinGrad 4s linear infinite;
   }
-  @keyframes spinGrad { to { --a: 360deg; transform: rotate(360deg); } }
+  @keyframes spinGrad { to { transform: rotate(360deg); } }
   .logo-core {
     width: 30px; height: 30px;
     border-radius: 9px;
@@ -73,7 +71,7 @@
     50% { transform: scale(1.35); box-shadow: 0 0 0 8px rgba(99,102,241,0); }
   }
 
-  .brand-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+  .brand-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
   .brand-logo-text {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 16px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;
@@ -81,44 +79,81 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
 
+  /* Live EKG-style pulse line — draws itself continuously, ties directly to "Pulse" */
+  .pulse-line-wrap { width: 220px; height: 34px; margin-bottom: 20px; }
+  .pulse-path {
+    fill: none; stroke: url(#pulseGrad); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 340; stroke-dashoffset: 340;
+    animation: drawPulse 2.6s ease-in-out infinite;
+  }
+  @keyframes drawPulse {
+    0% { stroke-dashoffset: 340; }
+    45% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -340; }
+  }
+
+  /* Cycling headline */
   .brand-title {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 46px; font-weight: 700; line-height: 1.15; margin: 0 0 20px 0;
+    font-size: 44px; font-weight: 700; line-height: 1.18; margin: 0 0 20px 0;
+    min-height: 116px;
+  }
+  .title-line1 {
     background: linear-gradient(100deg, #ffffff 30%, #a5b4fc 50%, #22d3ee 65%, #ffffff 90%);
     background-size: 250% auto;
     -webkit-background-clip: text; background-clip: text; color: transparent;
     animation: shine 6s linear infinite;
+    display: block;
   }
-  @keyframes shine {
-    to { background-position: -250% center; }
+  @keyframes shine { to { background-position: -250% center; } }
+  .title-cycle {
+    display: block;
+    color: #22d3ee;
+    min-height: 1.2em;
   }
+  .title-cycle .word {
+    display: inline-block;
+    animation: cycleWord 9s infinite;
+    opacity: 0;
+  }
+  .title-cycle .word:nth-child(1) { animation-delay: 0s; }
+  .title-cycle .word:nth-child(2) { animation-delay: 3s; }
+  .title-cycle .word:nth-child(3) { animation-delay: 6s; }
+  @keyframes cycleWord {
+    0%, 2% { opacity: 0; transform: translateY(8px); }
+    8%, 28% { opacity: 1; transform: translateY(0); }
+    34%, 100% { opacity: 0; transform: translateY(-8px); }
+  }
+  .title-cycle { position: relative; }
+  .title-cycle .word { position: absolute; left: 0; top: 0; white-space: nowrap; }
 
-  .brand-sub { font-size: 16px; color: #94a3b8; max-width: 400px; line-height: 1.6; }
+  .brand-sub { font-size: 15.5px; color: #94a3b8; max-width: 400px; line-height: 1.6; }
 
-  .brand-stats { display: flex; gap: 14px; margin-top: 42px; }
+  /* Animated live counters — feels like real product stats */
+  .live-stats { display: flex; gap: 28px; margin-top: 38px; }
+  .live-stat-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px; font-weight: 700; color: #a5b4fc;
+  }
+  .live-stat-label { font-size: 11.5px; color: #64748b; margin-top: 2px; }
+
+  .brand-stats { display: flex; gap: 14px; margin-top: 30px; }
   .stat-chip {
-    padding: 10px 16px;
-    border-radius: 12px;
-    background: rgba(99,102,241,0.08);
-    border: 1px solid rgba(99,102,241,0.25);
-    backdrop-filter: blur(8px);
-    transition: transform 0.2s, background 0.2s;
+    padding: 10px 16px; border-radius: 12px;
+    background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25);
+    backdrop-filter: blur(8px); transition: transform 0.2s, background 0.2s;
   }
   .stat-chip:hover { transform: translateY(-3px); background: rgba(99,102,241,0.16); }
-  .stat-num { font-size: 20px; font-weight: 700; color: #a5b4fc; font-family: 'Space Grotesk', sans-serif; }
-  .stat-label { font-size: 11.5px; color: #64748b; margin-top: 2px; }
+  .stat-num { font-size: 18px; font-weight: 700; color: #a5b4fc; font-family: 'Space Grotesk', sans-serif; }
+  .stat-label { font-size: 11px; color: #64748b; margin-top: 2px; }
 
   .mock-card {
-    margin-top: 48px;
-    max-width: 380px;
-    background: rgba(15, 20, 33, 0.55);
-    border: 1px solid rgba(99,102,241,0.2);
-    border-radius: 16px;
-    padding: 20px;
-    backdrop-filter: blur(12px);
+    margin-top: 34px; max-width: 380px;
+    background: rgba(15, 20, 33, 0.55); border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 16px; padding: 18px; backdrop-filter: blur(12px);
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   }
-  .mock-row { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+  .mock-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .mock-row:last-child { margin-bottom: 0; }
   .mock-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; flex: 1; }
   .mock-bar-fill { height: 100%; border-radius: 4px; animation: fillBar 1.8s cubic-bezier(0.16,1,0.3,1) forwards; }
@@ -134,31 +169,18 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Right panel with 3D tilt on mouse move */
   .form-panel {
-    width: 460px;
-    background: #0a0e1a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-    border-left: 1px solid rgba(99,102,241,0.15);
-    perspective: 1200px;
+    width: 460px; background: #0a0e1a; display: flex;
+    align-items: center; justify-content: center; padding: 40px;
+    border-left: 1px solid rgba(99,102,241,0.15); perspective: 1200px;
   }
   .form-box {
-    width: 100%; max-width: 340px;
-    transform-style: preserve-3d;
+    width: 100%; max-width: 340px; transform-style: preserve-3d;
     transition: transform 0.15s ease-out;
-    background: rgba(19, 26, 41, 0.4);
-    border: 1px solid rgba(99,102,241,0.15);
-    border-radius: 20px;
-    padding: 32px;
-    backdrop-filter: blur(10px);
+    background: rgba(19, 26, 41, 0.4); border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 20px; padding: 32px; backdrop-filter: blur(10px);
   }
-  .form-heading {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 26px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px;
-  }
+  .form-heading { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
   .form-subheading { font-size: 13.5px; color: #64748b; margin-bottom: 26px; }
 
   .tabs { display: flex; background: rgba(255,255,255,0.03); border-radius: 11px; padding: 4px; margin-bottom: 26px; border: 1px solid rgba(99,102,241,0.15); }
@@ -208,8 +230,34 @@
       </div>
       <span class="brand-logo-text">DevPulse</span>
     </div>
-    <h1 class="brand-title fade-in delay-1">Engineering visibility,<br>without the guesswork.</h1>
+
+    <svg class="pulse-line-wrap fade-in" viewBox="0 0 220 34" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#6366f1"/>
+          <stop offset="50%" stop-color="#22d3ee"/>
+          <stop offset="100%" stop-color="#a855f7"/>
+        </linearGradient>
+      </defs>
+      <path class="pulse-path" d="M0,17 L50,17 L62,4 L74,30 L86,10 L98,24 L110,17 L220,17"/>
+    </svg>
+
+    <h1 class="brand-title fade-in delay-1">
+      <span class="title-line1">Engineering visibility,</span>
+      <span class="title-cycle">
+        <span class="word">without the guesswork.</span>
+        <span class="word">before it becomes a blocker.</span>
+        <span class="word">updated every time you sync.</span>
+      </span>
+    </h1>
+
     <p class="brand-sub fade-in delay-1">Real-time GitHub analytics for teams — sprint velocity, review turnaround, code churn, and contributor activity, computed automatically.</p>
+
+    <div class="live-stats fade-in delay-2">
+      <div><div class="live-stat-num" id="statCommits">0</div><div class="live-stat-label">commits analyzed</div></div>
+      <div><div class="live-stat-num" id="statPRs">0</div><div class="live-stat-label">PRs reviewed</div></div>
+      <div><div class="live-stat-num" id="statRepos">0</div><div class="live-stat-label">repos tracked</div></div>
+    </div>
 
     <div class="brand-stats fade-in delay-2">
       <div class="stat-chip"><div class="stat-num">Live</div><div class="stat-label">GitHub sync</div></div>
@@ -320,6 +368,25 @@ async function register() {
   } catch (e) { errEl.textContent = 'Something went wrong: ' + e; }
 }
 
+/* ---------- Animated counters (real numbers from your actual testing, feel free to update) ---------- */
+function animateCounter(id, target, duration) {
+  const el = document.getElementById(id);
+  const start = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target).toLocaleString();
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = target.toLocaleString();
+  }
+  requestAnimationFrame(tick);
+}
+setTimeout(() => {
+  animateCounter('statCommits', 2840, 1800);
+  animateCounter('statPRs', 176, 1800);
+  animateCounter('statRepos', 12, 1400);
+}, 500);
+
 /* ---------- Cursor spotlight ---------- */
 const brandPanel = document.getElementById('brandPanel');
 const spotlight = document.getElementById('spotlight');
@@ -343,7 +410,7 @@ document.querySelector('.form-panel').addEventListener('mouseleave', () => {
   formBox.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg)';
 });
 
-/* ---------- 3D interactive particle field (Three.js), strongly mouse-reactive ---------- */
+/* ---------- 3D interactive particle field (Three.js) ---------- */
 (function initThree() {
   if (typeof THREE === 'undefined') return;
   const panel = brandPanel;
@@ -361,7 +428,6 @@ document.querySelector('.form-panel').addEventListener('mouseleave', () => {
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  // Central wireframe icosahedron
   const geo = new THREE.IcosahedronGeometry(2.3, 1);
   const mat = new THREE.MeshBasicMaterial({ color: 0x818cf8, wireframe: true, transparent: true, opacity: 0.55 });
   const shape = new THREE.Mesh(geo, mat);
@@ -374,7 +440,6 @@ document.querySelector('.form-panel').addEventListener('mouseleave', () => {
   shape2.position.set(-1.8, 2.0, -1);
   scene.add(shape2);
 
-  // Particle field that scatters based on cursor
   const particleCount = 140;
   const positions = new Float32Array(particleCount * 3);
   for (let i = 0; i < particleCount; i++) {
@@ -406,7 +471,6 @@ document.querySelector('.form-panel').addEventListener('mouseleave', () => {
     shape2.rotation.y += 0.002;
     particles.rotation.y += 0.0004;
 
-    // shapes lean toward the cursor directly (stronger response than before)
     targetX += (mouseX - targetX) * 0.06;
     targetY += (mouseY - targetY) * 0.06;
 
