@@ -17,13 +17,9 @@
     position: relative;
   }
 
-  /* ---------- Terminal-style side panels: live API request log ---------- */
+  /* ---------- Multiple terminal-style side panels, different sizes/speeds ---------- */
   .term-panel {
     position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 250px;
-    height: 380px;
     background: rgba(10, 14, 24, 0.7);
     border: 1px solid rgba(99,102,241,0.25);
     border-radius: 12px;
@@ -33,23 +29,26 @@
     z-index: 0;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   }
-  .term-panel.left { left: -70px; }
-  .term-panel.right { right: -70px; }
+  .term-panel.mid-left { top: 50%; left: -70px; width: 250px; height: 340px; transform: translateY(-58%); }
+  .term-panel.mid-right { top: 50%; right: -70px; width: 250px; height: 340px; transform: translateY(-42%); }
+  .term-panel.top-left { top: 6%; left: -90px; width: 200px; height: 200px; opacity: 0.75; }
+  .term-panel.bottom-right { bottom: 6%; right: -90px; width: 200px; height: 200px; opacity: 0.75; }
 
   .term-titlebar {
     display: flex; align-items: center; gap: 6px;
-    padding: 9px 12px;
+    padding: 8px 12px;
     background: rgba(255,255,255,0.03);
     border-bottom: 1px solid rgba(99,102,241,0.15);
   }
-  .term-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .term-titlebar span {
-    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #64748b; margin-left: 6px;
-  }
+  .term-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .term-titlebar span { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #64748b; margin-left: 5px; }
 
-  .term-body { padding: 10px 12px; overflow: hidden; height: calc(100% - 34px); }
-  .term-track { animation: scrollUp 24s linear infinite; }
-  .term-panel.right .term-track { animation-duration: 30s; animation-direction: reverse; }
+  .term-body { padding: 9px 12px; overflow: hidden; height: calc(100% - 30px); }
+  .term-track-slow { animation: scrollUp 22s linear infinite; }
+  .term-track-med { animation: scrollUp 15s linear infinite; }
+  .term-track-fast { animation: scrollUp 10s linear infinite; }
+  .term-panel.mid-right .term-track-slow,
+  .term-panel.bottom-right .term-track-med { animation-direction: reverse; }
 
   @keyframes scrollUp {
     from { transform: translateY(0); }
@@ -58,21 +57,20 @@
 
   .term-line {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    line-height: 2.1;
+    font-size: 10px;
+    line-height: 2.0;
     white-space: nowrap;
   }
   .method { font-weight: 600; }
   .m-get { color: #60a5fa; }
   .m-post { color: #4ade80; }
   .m-patch { color: #a78bfa; }
-  .m-delete { color: #f87171; }
   .status-ok { color: #4ade80; }
   .status-created { color: #22d3ee; }
   .path { color: #94a3b8; }
   .timing { color: #475569; }
 
-  @media (max-width: 1400px) {
+  @media (max-width: 1450px) {
     .term-panel { display: none; }
   }
 
@@ -80,7 +78,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
     padding-bottom: 20px;
     border-bottom: 1px solid #1e293b;
     position: relative;
@@ -130,6 +128,18 @@
     font-size: 13px; font-weight: 700; color: white; overflow: hidden;
   }
 
+  /* Quick-jump menu bar */
+  .quickjump {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 24px; position: relative; z-index: 1;
+  }
+  .qj-link {
+    padding: 7px 13px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+    color: #94a3b8; background: #131a29; border: 1px solid #1e293b;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .qj-link:hover { color: #f1f5f9; border-color: #3b82f6; background: #1a2332; }
+
   .card {
     background: #131a29;
     border: 1px solid #1e293b;
@@ -140,6 +150,7 @@
     transition: border-color 0.15s;
     position: relative;
     z-index: 1;
+    scroll-margin-top: 20px;
   }
   .card:hover { border-color: #2d3d54; }
 
@@ -236,23 +247,41 @@
 </head>
 <body>
 
-<div class="term-panel left">
+<div class="term-panel mid-left">
   <div class="term-titlebar">
     <div class="term-dot" style="background:#f87171;"></div>
     <div class="term-dot" style="background:#fbbf24;"></div>
     <div class="term-dot" style="background:#4ade80;"></div>
     <span>api — live requests</span>
   </div>
-  <div class="term-body"><div class="term-track" id="termLeft"></div></div>
+  <div class="term-body"><div class="term-track-slow" id="termMidLeft"></div></div>
 </div>
-<div class="term-panel right">
+<div class="term-panel mid-right">
   <div class="term-titlebar">
     <div class="term-dot" style="background:#f87171;"></div>
     <div class="term-dot" style="background:#fbbf24;"></div>
     <div class="term-dot" style="background:#4ade80;"></div>
     <span>devpulse.services</span>
   </div>
-  <div class="term-body"><div class="term-track" id="termRight"></div></div>
+  <div class="term-body"><div class="term-track-slow" id="termMidRight"></div></div>
+</div>
+<div class="term-panel top-left">
+  <div class="term-titlebar">
+    <div class="term-dot" style="background:#f87171;"></div>
+    <div class="term-dot" style="background:#fbbf24;"></div>
+    <div class="term-dot" style="background:#4ade80;"></div>
+    <span>sync.log</span>
+  </div>
+  <div class="term-body"><div class="term-track-fast" id="termTopLeft"></div></div>
+</div>
+<div class="term-panel bottom-right">
+  <div class="term-titlebar">
+    <div class="term-dot" style="background:#f87171;"></div>
+    <div class="term-dot" style="background:#fbbf24;"></div>
+    <div class="term-dot" style="background:#4ade80;"></div>
+    <span>metrics.log</span>
+  </div>
+  <div class="term-body"><div class="term-track-med" id="termBottomRight"></div></div>
 </div>
 
 <div class="topbar">
@@ -268,8 +297,17 @@
     <a class="nav-link active">Dashboard</a>
     <a class="nav-link" onclick="window.location.href='/profile/'">Profile</a>
     <div id="navAvatar" class="nav-avatar">?</div>
-    <button class="secondary" onclick="logout()" style="margin-left:10px;">Log out</button>
   </div>
+</div>
+
+<div class="quickjump" id="managerQuickjump">
+  <div class="qj-link" onclick="jumpTo('flagsCard')">🚩 Alerts</div>
+  <div class="qj-link" onclick="jumpTo('leaderboardCard')">🏆 Leaderboard</div>
+  <div class="qj-link" onclick="jumpTo('fullReportCard')">⚡ Full Report</div>
+  <div class="qj-link" onclick="jumpTo('compareCard')">⚖️ Compare</div>
+  <div class="qj-link" onclick="jumpTo('churnCard')">📊 Code Churn</div>
+  <div class="qj-link" onclick="jumpTo('turnaroundCard')">⏱ Turnaround</div>
+  <div class="qj-link" onclick="jumpTo('pendingCard')">🔍 Pending Review</div>
 </div>
 
 <div class="warning-banner">
@@ -301,14 +339,14 @@
 <!-- ===================== MANAGER VIEW ===================== -->
 <div id="managerControls">
 
-  <div class="card alert-card">
+  <div class="card alert-card" id="flagsCard">
     <h3>🚩 Smart Alerts</h3>
     <p class="muted">Not a scorecard — just things worth a quick check-in with your team.</p>
     <button onclick="loadFlags()">Check for issues</button>
     <div id="flagsResult"></div>
   </div>
 
-  <div class="card highlight">
+  <div class="card highlight" id="leaderboardCard">
     <h3>🏆 Team Performance Leaderboard</h3>
     <p class="muted">Click any name to view their profile or send feedback.</p>
     <div class="lb-toggle">
@@ -382,7 +420,7 @@
     <div id="repoDetailsResult"></div>
   </div>
 
-  <div class="card highlight">
+  <div class="card highlight" id="fullReportCard">
     <h3>⚡ One-click full report</h3>
     <button onclick="showFullReport()">Show Everything</button>
     <div id="fullReportResult"></div>
@@ -395,7 +433,7 @@
     <div id="timelineResult"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="churnCard">
     <h3>Code Churn</h3>
     <p class="muted">Lines added/removed.</p>
     <button onclick="codeChurn()">Show Code Churn</button>
@@ -409,7 +447,7 @@
     <div id="contribResult"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="compareCard">
     <h3>Compare two contributors</h3>
     <div class="row">
       <div><label>Person A (GitHub username)</label><input id="compareA" placeholder="e.g. nateprewitt"></div>
@@ -419,14 +457,14 @@
     <div id="compareResult"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="turnaroundCard">
     <h3>PR Review Turnaround</h3>
     <p class="muted">How fast reviews happen.</p>
     <button onclick="prTurnaround()">Show Turnaround</button>
     <div id="turnaroundResult"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="pendingCard">
     <h3>Pending Review</h3>
     <p class="muted">Open PRs nobody has reviewed.</p>
     <button onclick="pendingReview()">Show Pending PRs</button>
@@ -453,9 +491,14 @@
 const token = localStorage.getItem('devpulse_access');
 if (!token) window.location.href = '/login/';
 
-/* ---------- Build the animated terminal API request logs ---------- */
+function jumpTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---------- Build the animated terminal API request logs (4 panels) ---------- */
 (function buildTerminalLog() {
-  const logs = [
+  const fullLog = [
     { m: 'GET', mc: 'm-get', path: '/api/metrics/leaderboard/', status: '200', sc: 'status-ok', ms: '42ms' },
     { m: 'POST', mc: 'm-post', path: '/api/repositories/9/sync/', status: '200', sc: 'status-ok', ms: '1284ms' },
     { m: 'GET', mc: 'm-get', path: '/api/metrics/flags/', status: '200', sc: 'status-ok', ms: '38ms' },
@@ -467,8 +510,18 @@ if (!token) window.location.href = '/login/';
     { m: 'POST', mc: 'm-post', path: '/api/teams/3/add-member/', status: '201', sc: 'status-created', ms: '33ms' },
     { m: 'GET', mc: 'm-get', path: '/api/metrics/compare/', status: '200', sc: 'status-ok', ms: '52ms' },
   ];
+  const syncLog = [
+    { m: 'GET', mc: 'm-get', path: '/repos/fastapi/pulls', status: '200', sc: 'status-ok', ms: '210ms' },
+    { m: 'GET', mc: 'm-get', path: '/repos/fastapi/commits', status: '200', sc: 'status-ok', ms: '188ms' },
+    { m: 'GET', mc: 'm-get', path: '/pulls/3785/reviews', status: '200', sc: 'status-ok', ms: '94ms' },
+  ];
+  const metricsLog = [
+    { m: 'GET', mc: 'm-get', path: '/api/metrics/code-churn/', status: '200', sc: 'status-ok', ms: '31ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/metrics/pr-turnaround/', status: '200', sc: 'status-ok', ms: '27ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/pull-requests/pending-review/', status: '200', sc: 'status-ok', ms: '19ms' },
+  ];
 
-  function buildUnit() {
+  function buildUnit(logs) {
     let html = '';
     logs.forEach(l => {
       html += `<div class="term-line">
@@ -481,9 +534,15 @@ if (!token) window.location.href = '/login/';
     return html;
   }
 
-  const unit = buildUnit();
-  document.getElementById('termLeft').innerHTML = unit + unit;
-  document.getElementById('termRight').innerHTML = unit + unit;
+  const u1 = buildUnit(fullLog);
+  document.getElementById('termMidLeft').innerHTML = u1 + u1;
+  document.getElementById('termMidRight').innerHTML = u1 + u1;
+
+  const u2 = buildUnit(syncLog);
+  document.getElementById('termTopLeft').innerHTML = u2 + u2;
+
+  const u3 = buildUnit(metricsLog);
+  document.getElementById('termBottomRight').innerHTML = u3 + u3;
 })();
 
 function headers(extra) {
@@ -538,6 +597,7 @@ async function checkRoleAndInit() {
     const role = me.profile.role;
     if (role === 'developer') {
       document.getElementById('managerControls').style.display = 'none';
+      document.getElementById('managerQuickjump').style.display = 'none';
       document.getElementById('myStatsCard').style.display = 'block';
       document.getElementById('joinTeamCard').style.display = 'block';
       document.getElementById('githubUsernameInput').value = me.profile.github_username || '';

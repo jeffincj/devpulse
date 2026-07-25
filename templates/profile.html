@@ -19,10 +19,6 @@
 
   .term-panel {
     position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 230px;
-    height: 360px;
     background: rgba(10, 14, 24, 0.7);
     border: 1px solid rgba(99,102,241,0.25);
     border-radius: 12px;
@@ -32,27 +28,29 @@
     z-index: 0;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   }
-  .term-panel.left { left: 30px; }
-  .term-panel.right { right: 30px; }
+  .term-panel.mid-left { top: 50%; left: 30px; width: 230px; height: 350px; transform: translateY(-55%); }
+  .term-panel.mid-right { top: 50%; right: 30px; width: 230px; height: 350px; transform: translateY(-45%); }
+  .term-panel.top-corner { top: 4%; right: 30px; width: 190px; height: 170px; opacity: 0.7; }
 
   .term-titlebar {
     display: flex; align-items: center; gap: 6px;
-    padding: 9px 12px;
+    padding: 8px 12px;
     background: rgba(255,255,255,0.03);
     border-bottom: 1px solid rgba(99,102,241,0.15);
   }
-  .term-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .term-titlebar span { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #64748b; margin-left: 6px; }
+  .term-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .term-titlebar span { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #64748b; margin-left: 5px; }
 
-  .term-body { padding: 10px 12px; overflow: hidden; height: calc(100% - 34px); }
-  .term-track { animation: scrollUp 24s linear infinite; }
-  .term-panel.right .term-track { animation-duration: 30s; animation-direction: reverse; }
+  .term-body { padding: 9px 12px; overflow: hidden; height: calc(100% - 30px); }
+  .term-track-slow { animation: scrollUp 22s linear infinite; }
+  .term-track-fast { animation: scrollUp 11s linear infinite; }
+  .term-panel.mid-right .term-track-slow { animation-direction: reverse; }
   @keyframes scrollUp {
     from { transform: translateY(0); }
     to { transform: translateY(-50%); }
   }
 
-  .term-line { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 2.1; white-space: nowrap; }
+  .term-line { font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 2.0; white-space: nowrap; }
   .method { font-weight: 600; }
   .m-get { color: #60a5fa; }
   .m-post { color: #4ade80; }
@@ -105,6 +103,11 @@
     background: #2563eb; display: flex; align-items: center; justify-content: center;
     font-size: 13px; font-weight: 700; color: white; object-fit: cover; overflow: hidden;
   }
+  button.logout-btn {
+    margin-top: 0; margin-left: 8px; padding: 8px 14px;
+    background: #1e293b; color: #cbd5e1; border-radius: 7px; font-size: 13.5px;
+  }
+  button.logout-btn:hover { background: #dc2626; color: white; }
 
   .card { background: #131a29; border: 1px solid #1e293b; border-radius: 14px; padding: 24px; margin-bottom: 18px; position: relative; z-index: 1; }
   h3 { font-size: 15px; font-weight: 600; color: #f1f5f9; margin: 0 0 4px 0; }
@@ -143,23 +146,32 @@
 </head>
 <body>
 
-<div class="term-panel left">
+<div class="term-panel mid-left">
   <div class="term-titlebar">
     <div class="term-dot" style="background:#f87171;"></div>
     <div class="term-dot" style="background:#fbbf24;"></div>
     <div class="term-dot" style="background:#4ade80;"></div>
     <span>api — live requests</span>
   </div>
-  <div class="term-body"><div class="term-track" id="termLeft"></div></div>
+  <div class="term-body"><div class="term-track-slow" id="termMidLeft"></div></div>
 </div>
-<div class="term-panel right">
+<div class="term-panel mid-right">
   <div class="term-titlebar">
     <div class="term-dot" style="background:#f87171;"></div>
     <div class="term-dot" style="background:#fbbf24;"></div>
     <div class="term-dot" style="background:#4ade80;"></div>
     <span>devpulse.services</span>
   </div>
-  <div class="term-body"><div class="term-track" id="termRight"></div></div>
+  <div class="term-body"><div class="term-track-slow" id="termMidRight"></div></div>
+</div>
+<div class="term-panel top-corner">
+  <div class="term-titlebar">
+    <div class="term-dot" style="background:#f87171;"></div>
+    <div class="term-dot" style="background:#fbbf24;"></div>
+    <div class="term-dot" style="background:#4ade80;"></div>
+    <span>auth.log</span>
+  </div>
+  <div class="term-body"><div class="term-track-fast" id="termTopCorner"></div></div>
 </div>
 
 <div class="navbar">
@@ -175,6 +187,7 @@
     <a class="nav-link" onclick="window.location.href='/dashboard/'">Dashboard</a>
     <a class="nav-link active">Profile</a>
     <div class="nav-avatar" id="navAvatar">?</div>
+    <button class="logout-btn" onclick="logout()">Log out</button>
   </div>
 </div>
 
@@ -256,7 +269,7 @@ const token = localStorage.getItem('devpulse_access');
 if (!token) window.location.href = '/login/';
 
 (function buildTerminalLog() {
-  const logs = [
+  const fullLog = [
     { m: 'GET', mc: 'm-get', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '12ms' },
     { m: 'PATCH', mc: 'm-patch', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '29ms' },
     { m: 'POST', mc: 'm-post', path: '/api/auth/upload-photo/', status: '200', sc: 'status-ok', ms: '312ms' },
@@ -266,7 +279,13 @@ if (!token) window.location.href = '/login/';
     { m: 'POST', mc: 'm-post', path: '/api/feedback/', status: '201', sc: 'status-created', ms: '41ms' },
     { m: 'GET', mc: 'm-get', path: '/api/join-requests/mine/', status: '200', sc: 'status-ok', ms: '18ms' },
   ];
-  function buildUnit() {
+  const authLog = [
+    { m: 'POST', mc: 'm-post', path: '/api/auth/login/', status: '200', sc: 'status-ok', ms: '87ms' },
+    { m: 'POST', mc: 'm-post', path: '/api/auth/refresh/', status: '200', sc: 'status-ok', ms: '15ms' },
+    { m: 'GET', mc: 'm-get', path: '/api/auth/me/', status: '200', sc: 'status-ok', ms: '11ms' },
+  ];
+
+  function buildUnit(logs) {
     let html = '';
     logs.forEach(l => {
       html += `<div class="term-line">
@@ -278,12 +297,23 @@ if (!token) window.location.href = '/login/';
     });
     return html;
   }
-  const unit = buildUnit();
-  document.getElementById('termLeft').innerHTML = unit + unit;
-  document.getElementById('termRight').innerHTML = unit + unit;
+
+  const u1 = buildUnit(fullLog);
+  document.getElementById('termMidLeft').innerHTML = u1 + u1;
+  document.getElementById('termMidRight').innerHTML = u1 + u1;
+
+  const u2 = buildUnit(authLog);
+  document.getElementById('termTopCorner').innerHTML = u2 + u2;
 })();
 
 function headers(extra) { return Object.assign({ "Authorization": "Bearer " + token }, extra || {}); }
+
+function logout() {
+  localStorage.removeItem('devpulse_access');
+  localStorage.removeItem('devpulse_refresh');
+  window.location.href = '/login/';
+}
+
 function showResult(id, text, isError) {
   document.getElementById(id).innerHTML = "<div class='result" + (isError ? " error" : "") + "'>" + text + "</div>";
 }
